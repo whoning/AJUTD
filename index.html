@@ -207,9 +207,8 @@ h2{font-family:inherit;font-style:normal;font-size:13px;font-weight:700;letter-s
 .sxs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
 .sx{border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.06);color:var(--muted);font-size:13px}
 .sx b{display:block;font:700 44px/1 "Teko",sans-serif;color:var(--lime)}
-.ltab{display:grid;grid-template-columns:1fr 1fr;margin-top:16px;border-top:1px solid var(--rule)}
-.ltab button{border:0;border-radius:0;background:none;color:var(--muted);font-weight:700;min-height:48px;border-top:2px solid transparent;margin-top:-1px}
-.ltab .sel.t0{color:var(--t0);border-color:var(--t0)}.ltab .sel.t1{color:var(--t1);border-color:var(--t1)}
+.sxs{grid-template-columns:repeat(4,1fr)}
+@media(max-width:560px){.sxs{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -251,17 +250,18 @@ async function loadRemote(){if(!sb)return;
   catch(e){setNet('연결 오류: '+(e.message||e))}
   render()}
 // 낙관적 잠금: 내가 읽은 rev 그대로일 때만 덮어쓴다 (다른 운영자가 먼저 저장했으면 최신을 다시 불러옴)
-async function push(){if(!sb||!OP||!READY)return;
-  for(const [id,d] of [[1,pubOf()],[2,prvOf()]]){const js=JSON.stringify(d);if(LAST[id]===js)continue;
+// 경기 기록은 누구나 저장(1번 칸), 회비·계좌(2번 칸)는 운영자만
+async function push(){if(!sb||!READY)return;
+  for(const [id,d] of (OP?[[1,pubOf()],[2,prvOf()]]:[[1,pubOf()]])){const js=JSON.stringify(d);if(LAST[id]===js)continue;
     setNet('저장 중…');const rev=REV[id];
     let q=sb.from('club').update({data:{...d,rev:rev+1}}).eq('id',id);
     q=rev?q.eq('data->>rev',String(rev)):q.or('data->>rev.is.null,data->>rev.eq.0');
     const {data,error}=await q.select('id');
     if(error){setNet('저장 실패: '+error.message);return}
-    if(!data.length){alert('다른 운영자가 먼저 저장했어요. 최신 기록을 불러옵니다.');await loadRemote();return}
+    if(!data.length){alert('저장하지 못했어요(다른 사람이 먼저 저장했을 수 있어요). 최신 기록을 불러옵니다.');await loadRemote();return}
     REV[id]=rev+1;LAST[id]=js;if(id===1)REMOTE_EMPTY=false}
   setNet('저장됨')}
-function sync(){if(!sb||!OP||!READY||(REMOTE_EMPTY&&!okMig))return;clearTimeout(tm1);setNet('저장 대기…');tm1=setTimeout(()=>{tm1=null;push()},700)}
+function sync(){if(!sb||!READY||(REMOTE_EMPTY&&!okMig))return;clearTimeout(tm1);setNet('저장 대기…');tm1=setTimeout(()=>{tm1=null;push()},700)}
 async function doLogin(){const email=$('#le').value.trim(),password=$('#lp').value;loginErr='';
   const {error}=await sb.auth.signInWithPassword({email,password});
   if(error){loginErr='로그인 실패: 이메일과 비밀번호를 확인해 주세요';render();return}
@@ -284,6 +284,11 @@ const av=id=>{const i=Math.max(0,S.players.findIndex(p=>p.id===id)),h=[210,28,15
 const teamOf=(s,id)=>s.teams.findIndex(t=>t.ids.includes(id));
 const score=g=>[0,1].map(t=>g.filter(x=>x.t===t&&(x.p||x.og)).length);
 const curRound=s=>s.rounds.find(r=>r.id===S.rid)||s.rounds.at(-1);
+// 일정 날짜의 라운드를 찾고, 없으면 그날 참여자를 출석으로 넣어 새로 만든다
+function roundFor(d){const s=se();let r=s.rounds.find(x=>x.date===d);
+  if(!r){if(!confirm(d.slice(5).replace('-','/')+' 경기 라운드를 새로 만들까요?'))return null;
+    r={id:uid(),date:d,att:(S.votes[d]||[]).filter(pl),games:[]};s.rounds.push(r);s.rounds.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0)}
+  S.rid=r.id;return r}
 // 선택한 팀 선수를 앞에 둔 선수 <option> 목록
 const opts=(s,t,label)=>`<option value="">${label}</option>`+[...S.players].sort((a,b)=>(teamOf(s,b.id)===t)-(teamOf(s,a.id)===t)).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
 
@@ -306,7 +311,7 @@ const A={
   tab:i=>tab=i,
   ops:i=>opsTab=i,
   rk:i=>rkKey=i,
-  lut(i){luT=+i;luP=null},lup:i=>luP=i,
+  lup:i=>luP=i,
   dologin(){doLogin()},dologout(){doLogout()},migrate(){okMig=true},
   vopen:i=>S.open=S.open===i?null:i,
   nopen:i=>S.nopen=S.nopen===i?null:i,
@@ -314,6 +319,8 @@ const A={
   vt(i){const [d,id]=i.split('|'),a=S.votes[d]??=[],k=a.indexOf(id);k<0?a.push(id):a.splice(k,1)},
   newr(){const s=se();if(!s)return;const d=prompt('라운드 날짜',today());if(!d)return;
     const r={id:uid(),date:d,att:[],games:[]};s.rounds.push(r);S.rid=r.id},
+  gor(d){if(se()&&roundFor(d))tab='g'},
+  attv(){const r=curRound(se());(S.votes[r.date]||[]).forEach(id=>{if(pl(id)&&!r.att.includes(id))r.att.push(id)})},
   att(i){const r=curRound(se());const k=r.att.indexOf(i);k<0?r.att.push(i):r.att.splice(k,1)},
   addn(){const n=$('#gn').value.trim();if(!n)return;let p=S.players.find(x=>x.name===n);
     if(!p){p={id:uid(),name:n,m:false,guest:true};S.players.push(p)}  // 같은 이름이 있으면 그 선수를 재사용
@@ -355,7 +362,7 @@ document.onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;
   A[b.dataset.a](b.dataset.i);save();render()};
 document.onchange=e=>{const t=e.target,d=t.dataset;
   if(d.sel==='s'){S.sid=t.value;S.rid=null;S.draft=[]}
-  else if(d.sel==='r')S.rid=t.value;
+  else if(d.sel==='r'){if(t.value.startsWith('d:'))roundFor(t.value.slice(2));else if(t.value)S.rid=t.value}
   else if(t.id==='acct')S.acct=t.value.trim();
   else if(d.vi){const [dt,k]=d.vi.split('|');S.info[dt]={...infoOf(dt),[k]:t.value.trim()};S.infoDef=S.info[dt]}
   else if(d.ini!==undefined){const q=t.value.trim().toUpperCase().replace(/[^A-Z]/g,'').slice(0,2);pl(d.ini).ini=q||undefined}
@@ -380,8 +387,8 @@ setInterval(()=>{if(!TM.run)return;const now=Date.now();TM.left=Math.max(0,TM.le
   if(TM.left<=0){TM.run=false;navigator.vibrate?.([300,150,300]);if(tab==='g')render()}},250);
 const gtOf=(s,id)=>S.gt[id]??teamOf(s,id);
 
-function vGame(){const s=se();if(!s)return none;const r=curRound(s);
-  const head=`<div class="card"><div class="row" style="margin:0"><select data-sel="r">${s.rounds.map((x,i)=>`<option value="${x.id}" ${r&&x.id===r.id?'selected':''}>${s.base.rounds+i+1}R · ${esc(x.date)}</option>`).join('')||'<option>라운드 없음</option>'}</select>
+function vGame(){const s=se();if(!s)return none;const r=curRound(s),fr=SCHED.map(x=>x[0]).filter(d=>d<=today()&&!s.rounds.some(x=>x.date===d));
+  const head=`<div class="card"><div class="row" style="margin:0"><select data-sel="r">${r?'':'<option value="">라운드 선택</option>'}${s.rounds.map((x,i)=>`<option value="${x.id}" ${r&&x.id===r.id?'selected':''}>${s.base.rounds+i+1}R · ${esc(x.date)}</option>`).join('')}${fr.map(d=>`<option value="d:${d}">＋ ${d.slice(5).replace('-','/')} 일정으로 새 라운드</option>`).join('')}</select>
     ${OP?'<button class="pri" data-a="newr">＋ 새 라운드</button>':''}</div></div>`;
   if(!r)return head;
   const ids=[...new Set([...S.players.filter(p=>p.m).map(p=>p.id),...r.att])].filter(pl);
@@ -395,9 +402,6 @@ function vGame(){const s=se();if(!s)return none;const r=curRound(s);
     m.forEach(x=>{if(x.p)z(x.p).g++;if(x.a)z(x.a).a++;if(x.og)z(x.og).o++});
     return Object.entries(P).map(([id,v])=>nm(id)+' '+[v.g&&v.g+'골',v.a&&v.a+'어시',v.o&&'자책'+v.o].filter(Boolean).join(' ')).join(' · ')};
   const half=TM.half===1?'전반':'후반',done=TM.left<=0;
-  if(!OP)return head+`<div class="card"><h2>출석 ${r.att.length}명</h2><div class="chips">${r.att.map(id=>`<span class="chip" style="background:var(--neu-bg)">${nm(id)}</span>`).join('')||'<span class="mut">아직 없어요</span>'}</div></div>
-  <div class="card"><h2>이 라운드 경기 (${r.games.length})</h2><ul>${r.games.map((m,i)=>{const [x,y]=score(m);
-    return `<li><span>${i+1}경기 <b class="t0">${x}</b> : <b class="t1">${y}</b> <span class="mut">${x>y?esc(s.teams[0].n)+' 승':x<y?esc(s.teams[1].n)+' 승':'무'}</span><br><span class="mut">${gsum(m)}</span></span></li>`}).join('')}</ul></div>`;
   return head+`<div class="card live"><div class="lv">
       <div class="sb tt0"><small>${esc(s.teams[0].n)}</small><b>${sc[0]}</b></div>
       <div class="clock"><small>${half}</small><b id="tm">${mmss(Math.ceil(TM.left))}</b>
@@ -406,7 +410,7 @@ function vGame(){const s=se();if(!s)return none;const r=curRound(s);
     <button class="pri save" data-a="endgame">경기 저장 · ${sc[0]} : ${sc[1]}</button></div>
   ${free.length?`<div class="card"><h2>팀을 정해주세요</h2>${free.map(p=>`<div class="row"><span style="flex:1">${av(p.id)}${esc(p.name)}</span><button class="chip tt0" data-a="side" data-i="${p.id}|0">${esc(s.teams[0].n)}</button><button class="chip tt1" data-a="side" data-i="${p.id}|1">${esc(s.teams[1].n)}</button></div>`).join('')}</div>`:''}
   <div class="two">${att.length?`<div class="card">${col(0)}</div><div class="card">${col(1)}</div>`:'<div class="card mut">아래에서 오늘 출석한 선수를 눌러주세요</div>'}</div>
-  <div class="card"><h2>출석 ${r.att.length}명 (참여 중인 선수 · 눌러서 체크)</h2><div class="chips">${ids.map(id=>`<button class="${r.att.includes(id)?'on':''}" data-a="att" data-i="${id}">${nm(id)}</button>`).join('')}</div>
+  <div class="card"><h2>출석 ${r.att.length}명 (참여 중인 선수 · 눌러서 체크)</h2>${(S.votes[r.date]||[]).some(id=>pl(id)&&!r.att.includes(id))?'<button data-a="attv" style="margin-bottom:10px">일정 참여자 불러오기</button>':''}<div class="chips">${ids.map(id=>`<button class="${r.att.includes(id)?'on':''}" data-a="att" data-i="${id}">${nm(id)}</button>`).join('')}</div>
     <div class="row" style="margin-top:12px"><input id="gn" placeholder="용병 이름 직접 입력"><button data-a="addn">추가</button></div>
     ${guests.length?`<div class="row"><select id="gs"><option value="">미참여·용병 추가</option>${guests.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select><button data-a="addg">추가</button></div>`:''}</div>
   <div class="card"><h2>이 라운드 경기 (${r.games.length})</h2><ul>${r.games.map((m,i)=>{const [x,y]=score(m);
@@ -432,14 +436,13 @@ const rated=s=>{const {T,P,R}=calc(s);
   const rows=ids.map(id=>{const x=P[id]||{g:0,a:0,t:0};return {id,g:x.g,a:x.a,t:x.t,team:Math.max(0,teamOf(s,id)),o:Math.round(40*x.g/MG+30*x.a/MA+30*(R?x.t/R:0))}});
   return {T,P,R,ids,rows}};
 // 라인업: 팀별 참여 선수 타일(뒤의 큰 숫자 = 100점 점수), 누르면 위에 상세
-let luT=0,luP=null;
+let luP=null;
 function vLine(){const s=se();if(!s)return none;const {R,rows}=rated(s),all=[...rows].sort((a,b)=>b.o-a.o);
-  const L=all.filter(x=>teamOf(s,x.id)===luT&&pl(x.id).m),p=L.find(x=>x.id===luP)||L[0];
-  return `<div class="two">${p?`<div class="card"><div class="lh ${luT?'b':''}"><i>${p.o}</i>${mono(p.id,luT)}</div>
-    <div class="ln">${nm(p.id)}</div><div class="mut">${esc(s.teams[luT].n)} · 종합 ${all.indexOf(p)+1}위</div>
+  const TL=[0,1].map(t=>all.filter(x=>teamOf(s,x.id)===t&&pl(x.id).m)),p=[...TL[0],...TL[1]].find(x=>x.id===luP)||TL[0][0]||TL[1][0],pt=p?teamOf(s,p.id):0;
+  return `${p?`<div class="card"><div class="lh ${pt?'b':''}"><i>${p.o}</i>${mono(p.id,pt)}</div>
+    <div class="ln">${nm(p.id)}</div><div class="mut">${esc(s.teams[pt].n)} · 종합 ${all.indexOf(p)+1}위</div>
     <div class="sxs">${[[p.g,'골'],[p.a,'어시'],[p.t+'/'+R,'출석'],[p.o,'점수 (100점 만점)']].map(([v,l])=>`<div class="sx"><b>${v}</b>${l}</div>`).join('')}</div></div>`:''}
-  <div class="card"><h2>${esc(s.teams[luT].n)} 라인업 · ${L.length}명</h2><div class="lu">${L.map(x=>`<button class="lt ${x===p?'sel':''}" data-a="lup" data-i="${x.id}"><i>${x.o}</i>${mono(x.id,luT)}<span>${nm(x.id)}</span></button>`).join('')||'<span class="mut">참여 중인 선수가 없어요</span>'}</div>
-    <div class="ltab">${s.teams.map((t,i)=>`<button class="t${i} ${i===luT?'sel':''}" data-a="lut" data-i="${i}">${esc(t.n)}</button>`).join('')}</div></div></div>`}
+  <div class="two">${TL.map((L,t)=>`<div class="card"><h2 class="t${t}">${esc(s.teams[t].n)} 라인업 · ${L.length}명</h2><div class="lu">${L.map(x=>`<button class="lt ${x===p?'sel':''}" data-a="lup" data-i="${x.id}"><i>${x.o}</i>${mono(x.id,t)}<span>${nm(x.id)}</span></button>`).join('')||'<span class="mut">참여 중인 선수가 없어요</span>'}</div></div>`).join('')}</div>`}
 function vRank(){const s=se();if(!s)return none;const {T,P,R,ids,rows}=rated(s);
   const act=rows.filter(x=>x.g||x.a||x.t),idle=rows.filter(x=>!(x.g||x.a||x.t));
   const L=[...act].sort((a,b)=>b[rkKey]-a[rkKey]||b.o-a.o);
@@ -495,6 +498,7 @@ function vSched(){const t=today(),M={},mems=S.players.filter(p=>p.m),s=se();
     const lg=kind==='리그'?'lg':'';
     return `<li style="${d<t?'opacity:.55':''}"><div class="dt ${lg}"><b>${+d.slice(8)}</b><span>${'일월화수목금토'[new Date(d+'T00:00:00').getDay()]}</span></div>
       <div style="flex:1;min-width:0"><b>${kind}</b><div class="mut">${how}</div><div class="meter"><i class="${lg}" style="width:${Math.min(n,10)*10}%"></i><u></u></div>${by(ids.map(pl).filter(Boolean),(k,L)=>`<div style="margin-top:8px;font-size:14px">${lab(k)} <b>${L.length}명</b> · ${L.map(p=>esc(p.name)).join(' · ')}</div>`)}
+        ${d<=t&&s?`<button style="min-height:32px;padding:2px 12px;margin-top:8px" data-a="gor" data-i="${d}">${s.rounds.some(x=>x.date===d)?'경기 기록 보기':'경기 기록 시작'}</button>`:''}
         ${OP?`<button style="min-height:32px;padding:2px 12px;margin-top:8px" data-a="vopen" data-i="${d}">${S.open===d?'참여자 접기':'참여자 선택'}</button>`:''}
         ${OP?`<button style="min-height:32px;padding:2px 12px;margin-top:8px" data-a="nopen" data-i="${d}">${S.nopen===d?'공지 접기':'공지 보기'}</button>`:''}
         ${OP?`<button class="pri" style="min-height:32px;padding:2px 12px;margin-top:8px" data-a="cpd" data-i="${d}">${cp===d?'복사됨 ✓':'공지 복사'}</button>`:''}
