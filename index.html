@@ -194,6 +194,7 @@ h2{font-family:inherit;font-style:normal;font-size:13px;font-weight:700;letter-s
 }
 /* 라인업: 큰 숫자를 뒤에 깐 선수 타일 + 선택한 선수 상세 */
 .chips button.no{background:var(--neg-bg);border-color:transparent;color:var(--neg-ink)}
+.sc td:first-child,.sc th:first-child{position:sticky;left:0;z-index:1;background:#0a130c}
 .lu{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .lt{position:relative;overflow:hidden;min-height:0;padding:0 0 8px;border:1px solid var(--rule);border-radius:14px;background:rgba(255,255,255,.06);font-weight:700;text-align:center}
 .lt.sel{border-color:var(--lime);box-shadow:0 0 15px rgba(212,255,58,.35)}
@@ -226,7 +227,7 @@ const today=()=>new Date().toISOString().slice(0,10);
 const SCHED=[['2026-11-01',7],['2026-11-08',5],['2026-11-15',8],['2026-11-22',6],['2026-11-29',5]];
 let S={};try{S=JSON.parse(localStorage.getItem(K))||{}}catch(e){}
 S.players??=[];S.seasons??=[];S.dues??={};S.draft??=[];S.tally??={};S.gt??={};S.votes??={};S.plab??={};S.info??={};S.sid??=S.seasons.at(-1)?.id;
-let cp=null,opsTab='s',tab='c',yr=+today().slice(0,4),copied=false;
+let duesAll=false,cp=null,opsTab='s',tab='c',yr=+today().slice(0,4),copied=false;
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}sync()};
 // ── 클라우드 (Supabase): 1번 칸 = 공개(명단·경기·일정), 2번 칸 = 운영자만(회비·계좌) ──
 const SB_URL='https://vxmhkdjegbrpxhaocdcf.supabase.co',SB_KEY='sb_publishable_ZlgsGjjp43hvqEJzqGjROg_2SoArD2X';
@@ -351,6 +352,7 @@ const A={
   delgame(i){if(confirm('이 경기를 지울까요?'))curRound(se()).games.splice(i,1)},
   due(i){const [k,id]=i.split('|');const m=S.dues[k]??={};m[id]?delete m[id]:m[id]=DUE},
   yr:i=>yr+=+i,
+  dall(){duesAll=!duesAll},
   copy(){const t=$('#msg');t.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}
     if(!ok)navigator.clipboard?.writeText(t.value);copied=true},
   addp(){const n=$('#pn').value.trim();if(n)S.players.push({id:uid(),name:n,m:$('#pm').checked})},
@@ -534,14 +536,16 @@ function dunMsg(late){const d=new Date(),ty=String(d.getFullYear()),
    +`\n\n혹시 안 맞는 부분 있으시면 제가 착오했을 수도 있으니 언제든 말씀해주세요-! 🙇\n입금하시면 바로 반영하겠습니다. 감사합니다! 🙌`}
 
 function vDues(){const mem=S.players.filter(p=>p.m),nowK=today().slice(0,7);
-  const ks=Array.from({length:12},(_,i)=>yr+'-'+String(i+1).padStart(2,'0'));
+  const all=Array.from({length:12},(_,i)=>yr+'-'+String(i+1).padStart(2,'0'));
+  // 참여 중인 전원이 낸 달은 기본으로 가린다
+  const full=all.filter(k=>mem.length&&mem.every(p=>S.dues[k]?.[p.id])),ks=duesAll?all:all.filter(k=>!full.includes(k));
   const late=mem.map(p=>[p,unpaidOf(p.id)]).filter(x=>x[1].length);
   return `<div class="card"><h2>미입금 (첫 입금 이후 ~ 이번 달, 월 ${DUE.toLocaleString()}원)</h2>
     ${late.length?late.map(([p,ks])=>`<span class="neg"><b>${esc(p.name)}</b> ${(ks.length*DUE).toLocaleString()}원</span>`).join(' · '):'<span class="pos">미입금 없음</span>'}
     ${late.length?`<h2 style="margin-top:14px">카톡 문구</h2>
     <textarea id="msg" readonly rows="${late.length+8}" style="width:100%;font:inherit;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--card);color:inherit">${esc(dunMsg(late))}</textarea>
     <div class="row" style="margin-top:8px"><input id="acct" placeholder="입금계좌 (선택, 적으면 문구에 들어가요)" value="${esc(S.acct||'')}"><button class="pri" data-a="copy">${copied?'복사됨 ✓':'문구 복사'}</button></div>`:''}</div>
-  <div class="card"><div class="row"><button data-a="yr" data-i="-1">◀</button><b>${yr}년</b><button data-a="yr" data-i="1">▶</button><span class="mut">칸을 누르면 입금 ✓ / 취소</span></div>
+  <div class="card"><div class="row"><button data-a="yr" data-i="-1">◀</button><b>${yr}년</b><button data-a="yr" data-i="1">▶</button>${full.length?`<button data-a="dall">${duesAll?'완납한 달 숨기기':`완납한 달 보기 (${full.length})`}</button>`:''}<span class="mut">칸을 누르면 입금 ✓ / 취소</span></div>
     <div class="sc"><table><tr><th>이름</th>${ks.map(k=>`<th>${+k.slice(5)}월</th>`).join('')}</tr>
     ${mem.map(p=>{const first=Object.keys(S.dues).filter(k=>S.dues[k][p.id]).sort()[0]||'9';
       return `<tr><td>${av(p.id)}${esc(p.name)}</td>${ks.map(k=>{const ok=S.dues[k]?.[p.id];
@@ -581,7 +585,9 @@ function render(){
   const cr=se()&&curRound(se());
   const sub={g:cr?`${cr.date.slice(5).replace('-','/')} · 출석 ${cr.att.length}명 · ${isFree(cr)?'자유경기 (골·어시만 기록, 리그 승패 미반영)':'리그'}`:'',c:nx?`다음 경기 ${nx[0].slice(5).replace('-','/')} · 투표 ${nx[1]}명 · ${guide(nx[1])[1]}`:'',
     o:opsTab==='d'?(late?`회비 미입금 ${late}명 · 월 ${DUE.toLocaleString()}원`:'회비 미입금 없음'):''}[tab]||'';
+  const sx=$('.sc')?.scrollLeft;
   $('#v').innerHTML=`<h1>${T[tab]}</h1><p class="sub">${esc(sub)}</p>`+{g:vGame,c:vSched,u:vLine,r:vRank,o:vOps,l:vLogin}[tab]();
+  if(sx&&$('.sc'))$('.sc').scrollLeft=sx;
   fit();
 }
 render();loadRemote();document.fonts.ready.then(fit);
