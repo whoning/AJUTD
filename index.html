@@ -566,6 +566,16 @@ function vPlayers(){const s=se();
   <div class="card"><h2>백업 (브라우저를 바꾸거나 지우면 기록이 사라져요)</h2>
     <div class="row"><button data-a="exp">내보내기</button><input id="imp" type="file" accept=".json"></div></div>`}
 
+// 운영규칙 (누구나 볼 수 있음)
+function vRules(){const sec=(h,L)=>`<div class="card"><h2>${h}</h2><ul>${L.map(([a,b])=>`<li style="display:block"><b>${a}</b>${b?`<div class="mut">${b}</div>`:''}</li>`).join('')}</ul></div>`;
+  return sec('1. 기본 운영 원칙',[['정기 모임','매주 일요일 아침'],['월 회비',DUE.toLocaleString()+'원 (매월 1일 납부)'],['목표','인원수에 맞춘 유연한 진행으로 매주 경기 활성화']])
+   +sec('2. 참석 인원별 경기 진행 방식',[['4명 이하 · 개인 진행','개인별 플랩풋볼 신청 (팀 회비 지원 없음, 각자 부담)'],
+     ['5~6명 · 플랩풋볼 50% 지원','5명 이상 모이면 플랩풋볼 동일 매치 신청 · 개인 결제 후 월말 정산 때 지원금 지급'],
+     ['7~9명 · 구장 대관 + 게스트','정기 구장 대관 진행 · 부족한 인원(3~4명)은 용병/게스트 모집'],
+     ['10명 이상 · 자체 경기 / 외부 매치','자체 경기 또는 외부팀 평가전 진행'],
+     [LG+'명 미만 자유경기 / '+LG+'명 이상 리그 진행','']])
+   +sec('3. 리그와 기록',[['팀 승점','승 3점 · 무 1점 (리그 경기만 반영)'],['자유경기','골·어시·출석은 개인 기록에 쌓이고, 팀 승패에는 반영하지 않음'],
+     ['선수 카드 점수 (100점 만점)','골 40점(시즌 최다 대비) + 어시 30점(시즌 최다 대비) + 출석 30점(출석한 라운드 ÷ 전체)']])}
 function vLogin(){if(OP)return '<div class="card">운영자로 로그인되어 있어요.</div>';
   return `<div class="card"><div class="row"><input id="le" type="email" autocomplete="username" placeholder="이메일"></div>
     <div class="row"><input id="lp" type="password" autocomplete="current-password" placeholder="비밀번호"></div>
@@ -573,17 +583,17 @@ function vLogin(){if(OP)return '<div class="card">운영자로 로그인되어 �
 function render(){
   if(sb&&tab==='o'&&!OP)tab='c';
   $('#ss').innerHTML=S.seasons.map(s=>`<option value="${s.id}" ${s.id===S.sid?'selected':''}>${esc(s.name)}</option>`).join('')||'<option>시즌 없음</option>';
-  $('#nav').innerHTML=[['g','오늘 경기'],['c','일정'],['u','라인업'],['r','순위'],...(OP?[['o','운영자']]:[])].map(([k,t])=>`<button class="${tab===k?'on':''}" data-a="tab" data-i="${k}">${t}</button>`).join('');
+  $('#nav').innerHTML=[['g','오늘 경기'],['c','일정'],['u','라인업'],['r','순위'],['k','규칙'],...(OP?[['o','운영자']]:[])].map(([k,t])=>`<button class="${tab===k?'on':''}" data-a="tab" data-i="${k}">${t}</button>`).join('');
   const na=document.querySelector('[data-a=newse]');if(na)na.hidden=!OP;
   $('#auth').innerHTML=sb?(OP?'<button data-a="dologout">로그아웃</button>':'<button data-a="tab" data-i="l">운영자 로그인</button>'):'';
   const st=$('#st');if(st)st.textContent=net;
-  const T={g:'오늘의 경기',c:'일정',u:'라인업',r:'순위',o:'운영자',l:'운영자 로그인'};
+  const T={g:'오늘의 경기',c:'일정',u:'라인업',r:'순위',k:'운영규칙',o:'운영자',l:'운영자 로그인'};
   const nx=sched().filter(([d])=>d>=today()).sort()[0],late=S.players.filter(p=>p.m&&unpaidOf(p.id).length).length;
   const cr=se()&&curRound(se());
   const sub={g:cr?`${cr.date.slice(5).replace('-','/')} · 출석 ${cr.att.length}명 · ${isFree(cr)?'자유경기 (골·어시만 기록, 리그 승패 미반영)':'리그'}`:'',c:nx?`다음 경기 ${nx[0].slice(5).replace('-','/')} · 투표 ${nx[1]}명 · ${guide(nx[1])[1]}`:'',
     o:opsTab==='d'?(late?`회비 미입금 ${late}명 · 월 ${DUE.toLocaleString()}원`:'회비 미입금 없음'):''}[tab]||'';
   const sx=$('.sc')?.scrollLeft;
-  $('#v').innerHTML=`<h1>${T[tab]}</h1><p class="sub">${esc(sub)}</p>`+{g:vGame,c:vSched,u:vLine,r:vRank,o:vOps,l:vLogin}[tab]();
+  $('#v').innerHTML=`<h1>${T[tab]}</h1><p class="sub">${esc(sub)}</p>`+{g:vGame,c:vSched,u:vLine,r:vRank,k:vRules,o:vOps,l:vLogin}[tab]();
   if(sx&&$('.sc'))$('.sc').scrollLeft=sx;
   fit();
 }
