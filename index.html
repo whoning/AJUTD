@@ -177,7 +177,9 @@ body::before{background:radial-gradient(90% 55% at 15% 0,rgba(96,170,60,.55),tra
 h1,.brand{font-family:inherit;font-style:normal}
 h2{font-family:inherit;font-style:normal;font-size:13px;font-weight:700;letter-spacing:.1em;color:var(--muted)}
 .sh{font-family:"Teko",sans-serif;font-size:26px;line-height:1;letter-spacing:.04em;color:var(--lime)}
-.mark{background:var(--lime);color:#0a1a00}
+.brand{align-items:baseline;gap:8px;font:700 46px/.9 "Teko",sans-serif;letter-spacing:.03em;transform:skewX(-8deg);transform-origin:left bottom}
+.brand b{color:var(--lime);text-shadow:0 0 18px rgba(212,255,58,.45)}
+.brand small{align-self:center;padding-left:10px;border-left:2px solid var(--lime);font:700 11px/1.3 "Pretendard",sans-serif;letter-spacing:.24em;color:var(--muted)}
 .seg button.on{background:var(--lime);color:#0a1a00}
 .tabs button{background:var(--neu-bg);color:var(--text)}
 .vs,.pc .cs,.pt .stp small,.pt .ogr{color:var(--muted)}
@@ -212,7 +214,7 @@ h2{font-family:inherit;font-style:normal;font-size:13px;font-weight:700;letter-s
 </head>
 <body>
 <div class="app"><aside>
-<div class="brand"><span class="mark">AJ</span>UTD 기록장</div>
+<div class="brand"><b>AJ</b>UTD<small>FUTSAL CLUB</small></div>
 <div class="row"><select id="ss" data-sel="s"></select><button data-a="newse">새 시즌</button></div>
 <nav id="nav"></nav><div id="auth" class="auth"></div><div id="st" class="mut"></div></aside>
 <main id="v"></main></div>
