@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&family=Teko:wght@700&family=Barlow+Condensed:ital,wght@1,800&family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <title>AJ UTD 기록장</title>
 <style>
 :root{color-scheme:light;--ground:#f3f5f7;--surface:#fff;--border:#e6e6e6;--rule:#eef0f2;--control:#d6d9dd;--text:#1b1d1f;--muted:#5c6064;--accent:#1d5fd6;--accent-soft:#dcf1ff;--accent-ink:#0a3a80;--pos:#2f7a45;--neg:#c41c29;--pos-bg:#dcfae5;--pos-ink:#04250e;--neg-bg:#ffedea;--neg-ink:#831c1e;--neu-bg:#eef1f4;--active:#e6e9ec;--t0:#c2362c;--t0-bg:#ffe5e2;--t0-ink:#8a2a22;--t1:#1d5fd6;--t1-bg:#dcf1ff;--t1-ink:#0a3a80;--r:20px;--rc:10px;--gap:16px}
@@ -104,7 +105,7 @@ textarea{border-radius:var(--rc)}
 }
 /* ── FIFA 스타일 (흰 바탕 + 짙은 남색 카드, 레드·블루 팀 색, 연두 포인트) ── */
 :root{--navy:#0b1236;--navy2:#1a2766;--lime:#b8ff3d;--cy:#19e3ff}
-body{background:#f3f5fb;font-family:"Noto Sans KR","Manrope",system-ui,sans-serif}
+body{background:#f3f5fb;font-family:"Pretendard","Noto Sans KR","Manrope",system-ui,sans-serif}
 body::before{content:"";position:fixed;inset:0;background:repeating-linear-gradient(115deg,transparent 0 46px,rgba(10,20,80,.04) 46px 48px);pointer-events:none}
 .app{position:relative}
 h1,h2{font-family:"Barlow Condensed","Noto Sans KR",sans-serif;font-style:italic;font-weight:800;letter-spacing:.01em}
@@ -168,6 +169,45 @@ button.on{background:var(--lime);border-color:var(--lime);color:#0a1a00}
 .tb button{background:#25326f;color:#fff;border:0;border-radius:0;font-weight:800}
 .tb button:first-child{background:var(--lime);color:#0a1a00}
 .tb button.pri{background:var(--lime);color:#0a1a00}
+/* ── 잔디 다크 테마 (어두운 잔디 바탕 + 검은 유리 카드 + 라임 포인트) ── */
+:root{color-scheme:dark;--ground:#07140b;--surface:rgba(6,14,8,.78);--border:rgba(255,255,255,.1);--rule:rgba(255,255,255,.09);--control:rgba(255,255,255,.18);--text:#eef5ea;--muted:#9fb3a3;--lime:#d4ff3a;--accent:#d4ff3a;--accent-soft:rgba(212,255,58,.16);--accent-ink:#d4ff3a;--pos:#6fe08d;--neg:#ff7480;--pos-bg:rgba(111,224,141,.2);--pos-ink:#8df0a8;--neg-bg:rgba(255,116,128,.2);--neg-ink:#ff9aa3;--neu-bg:rgba(255,255,255,.08);--active:rgba(255,255,255,.1);--t0:#ff6170;--t0-bg:rgba(255,77,94,.2);--t0-ink:#ff9aa3;--t1:#5c9dff;--t1-bg:rgba(61,139,255,.22);--t1-ink:#9cc3ff;--navy:#070b08;--navy2:#1b261d;--cy:#d4ff3a}
+body{background:#07140b}
+body::before{background:radial-gradient(90% 55% at 15% 0,rgba(96,170,60,.55),transparent 70%),repeating-linear-gradient(90deg,rgba(255,255,255,.03) 0 70px,transparent 70px 140px),linear-gradient(#17451c,#061008 75%)}
+.card{border:1px solid var(--border)}
+h1,.brand{font-family:inherit;font-style:normal}
+h2{font-family:inherit;font-style:normal;font-size:13px;font-weight:700;letter-spacing:.1em;color:var(--muted)}
+.sh{font-family:"Teko",sans-serif;font-size:26px;line-height:1;letter-spacing:.04em;color:var(--lime)}
+.mark{background:var(--lime);color:#0a1a00}
+.seg button.on{background:var(--lime);color:#0a1a00}
+.tabs button{background:var(--neu-bg);color:var(--text)}
+.vs,.pc .cs,.pt .stp small,.pt .ogr{color:var(--muted)}
+.pc:not(.k1,.k2,.k3) .ovr{color:var(--lime)}
+.pt .stp button,.pt .ogr button,.tb button{background:rgba(255,255,255,.12)}
+.mm{background:rgba(255,255,255,.08)}
+.live{background:rgba(6,14,8,.92);padding:8px}
+@media(max-width:899px){
+ .app{padding-bottom:96px}
+ nav{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:9;display:flex;margin:0;padding:6px;border-radius:18px;background:rgba(6,14,8,.86);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--border)}
+ nav button{flex:1;padding:8px 2px;min-height:44px;font-size:13px;white-space:nowrap}
+}
+/* 라인업: 큰 숫자를 뒤에 깐 선수 타일 + 선택한 선수 상세 */
+.lu{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.lt{position:relative;overflow:hidden;min-height:0;padding:0 0 8px;border:1px solid var(--rule);border-radius:14px;background:rgba(255,255,255,.06);font-weight:700;text-align:center}
+.lt.sel{border-color:var(--lime);box-shadow:0 0 15px rgba(212,255,58,.35)}
+.lt i,.lh i{position:absolute;right:6px;top:0;font:700 46px/1 "Teko",sans-serif;color:rgba(255,255,255,.16)}
+.lt svg{position:relative;display:block;width:64%;margin-left:2%}
+.lt span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px}
+.lh{position:relative;overflow:hidden;height:190px;margin:-20px -20px 14px;border-radius:14px 14px 0 0;background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.02));border-bottom:3px solid var(--t0)}
+.lh.b{border-color:var(--t1)}
+.lh i{right:14px;top:10px;font-size:190px}
+.lh svg{position:relative;height:100%}
+.ln{font-size:26px;font-weight:800;line-height:1.2}
+.sxs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.sx{border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.06);color:var(--muted);font-size:13px}
+.sx b{display:block;font:700 44px/1 "Teko",sans-serif;color:var(--lime)}
+.ltab{display:grid;grid-template-columns:1fr 1fr;margin-top:16px;border-top:1px solid var(--rule)}
+.ltab button{border:0;border-radius:0;background:none;color:var(--muted);font-weight:700;min-height:48px;border-top:2px solid transparent;margin-top:-1px}
+.ltab .sel.t0{color:var(--t0);border-color:var(--t0)}.ltab .sel.t1{color:var(--t1);border-color:var(--t1)}
 </style>
 </head>
 <body>
@@ -264,6 +304,7 @@ const A={
   tab:i=>tab=i,
   ops:i=>opsTab=i,
   rk:i=>rkKey=i,
+  lut(i){luT=+i;luP=null},lup:i=>luP=i,
   dologin(){doLogin()},dologout(){doLogout()},migrate(){okMig=true},
   vopen:i=>S.open=S.open===i?null:i,
   nopen:i=>S.nopen=S.nopen===i?null:i,
@@ -379,11 +420,22 @@ function fit(){document.querySelectorAll('.mg').forEach(g=>{const WX=1.12,w=g.fi
   g.setAttribute('transform',`translate(46 75) scale(${s*WX} ${s}) skewX(-9)`)})}
 
 let rkKey='o';
-function vRank(){const s=se();if(!s)return none;const {T,P,R}=calc(s);
+const rated=s=>{const {T,P,R}=calc(s);
   const ids=[...new Set([...s.teams.flatMap(t=>t.ids),...Object.keys(P)])].filter(id=>pl(id)&&!pl(id).guest&&!pl(id).name.includes('용병'));
   // 카드 왼쪽 위 숫자 = 100점 만점: 골 40(시즌 최다 대비) + 어시 30(시즌 최다 대비) + 출석 30(출석한 라운드 ÷ 전체)
   const MG=Math.max(1,...ids.map(id=>P[id]?.g||0)),MA=Math.max(1,...ids.map(id=>P[id]?.a||0));
   const rows=ids.map(id=>{const x=P[id]||{g:0,a:0,t:0};return {id,g:x.g,a:x.a,t:x.t,team:Math.max(0,teamOf(s,id)),o:Math.round(40*x.g/MG+30*x.a/MA+30*(R?x.t/R:0))}});
+  return {T,P,R,ids,rows}};
+// 라인업: 팀별 참여 선수 타일(뒤의 큰 숫자 = 100점 점수), 누르면 위에 상세
+let luT=0,luP=null;
+function vLine(){const s=se();if(!s)return none;const {R,rows}=rated(s),all=[...rows].sort((a,b)=>b.o-a.o);
+  const L=all.filter(x=>teamOf(s,x.id)===luT&&pl(x.id).m),p=L.find(x=>x.id===luP)||L[0];
+  return `<div class="two">${p?`<div class="card"><div class="lh ${luT?'b':''}"><i>${p.o}</i>${mono(p.id,luT)}</div>
+    <div class="ln">${nm(p.id)}</div><div class="mut">${esc(s.teams[luT].n)} · 종합 ${all.indexOf(p)+1}위</div>
+    <div class="sxs">${[[p.g,'골'],[p.a,'어시'],[p.t+'/'+R,'출석'],[p.o,'점수 (100점 만점)']].map(([v,l])=>`<div class="sx"><b>${v}</b>${l}</div>`).join('')}</div></div>`:''}
+  <div class="card"><h2>${esc(s.teams[luT].n)} 라인업 · ${L.length}명</h2><div class="lu">${L.map(x=>`<button class="lt ${x===p?'sel':''}" data-a="lup" data-i="${x.id}"><i>${x.o}</i>${mono(x.id,luT)}<span>${nm(x.id)}</span></button>`).join('')||'<span class="mut">참여 중인 선수가 없어요</span>'}</div>
+    <div class="ltab">${s.teams.map((t,i)=>`<button class="t${i} ${i===luT?'sel':''}" data-a="lut" data-i="${i}">${esc(t.n)}</button>`).join('')}</div></div></div>`}
+function vRank(){const s=se();if(!s)return none;const {T,P,R,ids,rows}=rated(s);
   const act=rows.filter(x=>x.g||x.a||x.t),idle=rows.filter(x=>!(x.g||x.a||x.t));
   const L=[...act].sort((a,b)=>b[rkKey]-a[rkKey]||b.o-a.o);
   const card=(p,i,big)=>`<div class="pc ${p.team?'b':'r'} ${big?'k'+(i+1):''}"><span class="cr">#${i+1}</span><div class="ovr">${p.o}</div><div class="ct">${esc(s.teams[p.team].n)}</div><div class="cf">${mono(p.id,p.team)}</div><div class="cn">${nm(p.id)}</div><div class="cs"><span><b>${p.g}</b>골</span><span><b>${p.a}</b>어시</span><span><b>${p.t}</b>출석</span></div></div>`;
@@ -494,15 +546,15 @@ function vLogin(){if(OP)return '<div class="card">운영자로 로그인되어 �
 function render(){
   if(sb&&tab==='o'&&!OP)tab='c';
   $('#ss').innerHTML=S.seasons.map(s=>`<option value="${s.id}" ${s.id===S.sid?'selected':''}>${esc(s.name)}</option>`).join('')||'<option>시즌 없음</option>';
-  $('#nav').innerHTML=[['g','경기 기록'],['c','일정'],['r','순위'],...(OP?[['o','운영자']]:[])].map(([k,t])=>`<button class="${tab===k?'on':''}" data-a="tab" data-i="${k}">${t}</button>`).join('');
+  $('#nav').innerHTML=[['g','경기 기록'],['c','일정'],['u','라인업'],['r','순위'],...(OP?[['o','운영자']]:[])].map(([k,t])=>`<button class="${tab===k?'on':''}" data-a="tab" data-i="${k}">${t}</button>`).join('');
   const na=document.querySelector('[data-a=newse]');if(na)na.hidden=!OP;
   $('#auth').innerHTML=sb?(OP?'<button data-a="dologout">로그아웃</button>':'<button data-a="tab" data-i="l">운영자 로그인</button>'):'';
   const st=$('#st');if(st)st.textContent=net;
-  const T={g:'경기 기록',c:'일정',r:'순위',o:'운영자',l:'운영자 로그인'};
+  const T={g:'경기 기록',c:'일정',u:'라인업',r:'순위',o:'운영자',l:'운영자 로그인'};
   const nx=SCHED.filter(([d])=>d>=today()).sort()[0],late=S.players.filter(p=>p.m&&unpaidOf(p.id).length).length;
   const sub={c:nx?`다음 경기 ${nx[0].slice(5).replace('-','/')} · 투표 ${nx[1]}명 · ${guide(nx[1])[1]}`:'',
     o:opsTab==='d'?(late?`회비 미입금 ${late}명 · 월 ${DUE.toLocaleString()}원`:'회비 미입금 없음'):''}[tab]||'';
-  $('#v').innerHTML=`<h1>${T[tab]}</h1><p class="sub">${esc(sub)}</p>`+{g:vGame,c:vSched,r:vRank,o:vOps,l:vLogin}[tab]();
+  $('#v').innerHTML=`<h1>${T[tab]}</h1><p class="sub">${esc(sub)}</p>`+{g:vGame,c:vSched,u:vLine,r:vRank,o:vOps,l:vLogin}[tab]();
   fit();
 }
 render();loadRemote();document.fonts.ready.then(fit);
