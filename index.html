@@ -230,7 +230,7 @@ const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}sync()};
 // ── 클라우드 (Supabase): 1번 칸 = 공개(명단·경기·일정), 2번 칸 = 운영자만(회비·계좌) ──
 const SB_URL='https://vxmhkdjegbrpxhaocdcf.supabase.co',SB_KEY='sb_publishable_ZlgsGjjp43hvqEJzqGjROg_2SoArD2X';
 const sb=window.supabase?.createClient(SB_URL,SB_KEY)||null;   // 불러오지 못하면 이 기기에서만 쓰는 모드
-let OP=!sb,READY=!sb,REMOTE_EMPTY=false,okMig=false,net='',loginErr='',tm1=null;
+let OP=!sb,READY=!sb,REMOTE_EMPTY=false,okMig=false,P2=!sb,net='',loginErr='',tm1=null;
 const REV={1:0,2:0},LAST={};
 const pubOf=()=>({players:S.players,seasons:S.seasons,votes:S.votes,info:S.info,infoDef:S.infoDef||null});
 const prvOf=()=>({dues:S.dues,acct:S.acct||''});
@@ -239,10 +239,10 @@ function applyRow(id,d){
   if(id===1){if(!d.players){REMOTE_EMPTY=true;return}
     REMOTE_EMPTY=false;Object.assign(S,{players:d.players,seasons:d.seasons||[],votes:d.votes||{},info:d.info||{},infoDef:d.infoDef||undefined});
     if(!S.seasons.some(s=>s.id===S.sid))S.sid=S.seasons.at(-1)?.id}
-  else{if(!('dues' in d))return;S.dues=d.dues||{};S.acct=d.acct||''}
+  else{P2=true;if(!('dues' in d))return;S.dues=d.dues||{};S.acct=d.acct||''}
   REV[id]=d.rev||0;LAST[id]=JSON.stringify(id===1?pubOf():prvOf())}
 async function loadRemote(){if(!sb)return;
-  try{const {data:{session}}=await sb.auth.getSession();OP=!!session;
+  try{const {data:{session}}=await sb.auth.getSession();OP=!!session;P2=false;   // 2번 칸을 다시 읽기 전에는 회비를 저장하지 않는다
     const r1=await sb.from('club').select('data').eq('id',1).single();if(r1.error)throw r1.error;applyRow(1,r1.data.data);
     if(OP){const r2=await sb.from('club').select('data').eq('id',2).single();if(r2.error)throw r2.error;applyRow(2,r2.data.data)}
     else{S.dues={};S.acct=''}
@@ -252,7 +252,7 @@ async function loadRemote(){if(!sb)return;
 // 낙관적 잠금: 내가 읽은 rev 그대로일 때만 덮어쓴다 (다른 운영자가 먼저 저장했으면 최신을 다시 불러옴)
 // 경기 기록은 누구나 저장(1번 칸), 회비·계좌(2번 칸)는 운영자만
 async function push(){if(!sb||!READY)return;
-  for(const [id,d] of (OP?[[1,pubOf()],[2,prvOf()]]:[[1,pubOf()]])){const js=JSON.stringify(d);if(LAST[id]===js)continue;
+  for(const [id,d] of (OP&&P2?[[1,pubOf()],[2,prvOf()]]:[[1,pubOf()]])){const js=JSON.stringify(d);if(LAST[id]===js)continue;
     setNet('저장 중…');const rev=REV[id];
     let q=sb.from('club').update({data:{...d,rev:rev+1}}).eq('id',id);
     q=rev?q.eq('data->>rev',String(rev)):q.or('data->>rev.is.null,data->>rev.eq.0');
@@ -266,7 +266,7 @@ async function doLogin(){const email=$('#le').value.trim(),password=$('#lp').val
   const {error}=await sb.auth.signInWithPassword({email,password});
   if(error){loginErr='로그인 실패: 이메일과 비밀번호를 확인해 주세요';render();return}
   tab='o';await loadRemote()}
-async function doLogout(){await sb.auth.signOut();OP=false;S.dues={};S.acct='';try{localStorage.removeItem(K)}catch(e){}tab='c';await loadRemote()}
+async function doLogout(){await sb.auth.signOut();OP=false;P2=false;S.dues={};S.acct='';try{localStorage.removeItem(K)}catch(e){}tab='c';await loadRemote()}
 // 다른 사람이 고친 내용을 45초마다 확인 (입력 중이거나 저장 대기 중이면 건너뜀)
 setInterval(async()=>{if(!sb||document.hidden||tm1||!READY)return;const a=document.activeElement;
   if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))return;
