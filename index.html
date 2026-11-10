@@ -230,7 +230,9 @@ let cp=null,opsTab='s',tab='c',yr=+today().slice(0,4),copied=false;
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}sync()};
 // ── 클라우드 (Supabase): 1번 칸 = 공개(명단·경기·일정), 2번 칸 = 운영자만(회비·계좌) ──
 const SB_URL='https://vxmhkdjegbrpxhaocdcf.supabase.co',SB_KEY='sb_publishable_ZlgsGjjp43hvqEJzqGjROg_2SoArD2X';
-const sb=window.supabase?.createClient(SB_URL,SB_KEY)||null;   // 불러오지 못하면 이 기기에서만 쓰는 모드
+// 로그인은 그 탭을 닫으면 풀린다(sessionStorage). 예전에 기기에 남겨 둔 로그인 정보는 지운다
+let SS;try{SS=window.sessionStorage;localStorage.removeItem('sb-vxmhkdjegbrpxhaocdcf-auth-token')}catch(e){}
+const sb=window.supabase?.createClient(SB_URL,SB_KEY,SS?{auth:{storage:SS}}:undefined)||null;   // 불러오지 못하면 이 기기에서만 쓰는 모드
 let OP=!sb,READY=!sb,REMOTE_EMPTY=false,okMig=false,P2=!sb,net='',loginErr='',tm1=null;
 const REV={1:0,2:0},LAST={};
 const pubOf=()=>({players:S.players,seasons:S.seasons,votes:S.votes,plab:S.plab,info:S.info,infoDef:S.infoDef||null});
