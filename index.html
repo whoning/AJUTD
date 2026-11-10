@@ -345,10 +345,7 @@ const A={
       if(t<0)return alert('팀을 정하지 않은 선수가 있어요');
       for(let i=0;i<x.g;i++)E.push({t,p:id,a:''});for(let i=0;i<x.a;i++)E.push({t,p:'',a:id});gc[t]+=x.g;ac[t]+=x.a;for(let i=0;i<(x.o||0);i++)E.push({t:1-t,p:'',a:'',og:id})}
     if((ac[0]>gc[0]||ac[1]>gc[1])&&!confirm('어시가 골보다 많은 팀이 있어요. 그래도 저장할까요?'))return;
-    r.games.push(E);S.tally={};S.gt={};TM.half=1;TM.left=TM.len;TM.run=false},
-  tgo(){TM.run=!TM.run;TM.last=Date.now()},
-  tnext(){TM.half=2;TM.left=TM.len;TM.run=false},
-  trst(){TM.half=1;TM.left=TM.len;TM.run=false},
+    r.games.push(E);S.tally={};S.gt={}},
   delgame(i){if(confirm('이 경기를 지울까요?'))curRound(se()).games.splice(i,1)},
   due(i){const [k,id]=i.split('|');const m=S.dues[k]??={};m[id]?delete m[id]:m[id]=DUE},
   yr:i=>yr+=+i,
@@ -390,12 +387,6 @@ document.onchange=e=>{const t=e.target,d=t.dataset;
 
 const none='<div class="card">시즌이 없어요. 위의 <b>새 시즌</b>을 누르거나, 선수 탭에서 백업 파일을 불러오세요.</div>';
 
-// 경기 타이머: 전반 7분30초 + 후반 7분30초
-const TM={len:450,half:1,left:450,run:false,last:0};
-const mmss=n=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(Math.floor(n%60)).padStart(2,'0');
-setInterval(()=>{if(!TM.run)return;const now=Date.now();TM.left=Math.max(0,TM.left-(now-TM.last)/1000);TM.last=now;
-  const el=$('#tm');if(el)el.textContent=mmss(Math.ceil(TM.left));
-  if(TM.left<=0){TM.run=false;navigator.vibrate?.([300,150,300]);if(tab==='g')render()}},250);
 const gtOf=(s,id)=>S.gt[id]??teamOf(s,id);
 
 function vGame(){const s=se();if(!s)return none;const r=curRound(s),fr=SCHED.map(x=>x[0]).filter(d=>d>=today()&&!s.rounds.some(x=>x.date===d));
@@ -412,13 +403,11 @@ function vGame(){const s=se();if(!s)return none;const r=curRound(s),fr=SCHED.map
   const gsum=m=>{const P={},z=id=>P[id]??={g:0,a:0,o:0};
     m.forEach(x=>{if(x.p)z(x.p).g++;if(x.a)z(x.a).a++;if(x.og)z(x.og).o++});
     return Object.entries(P).map(([id,v])=>nm(id)+' '+[v.g&&v.g+'골',v.a&&v.a+'어시',v.o&&'자책'+v.o].filter(Boolean).join(' ')).join(' · ')};
-  const half=TM.half===1?'전반':'후반',done=TM.left<=0;
   return head+`<div class="card live"><div class="lv">
       <div class="sb tt0"><small>${esc(s.teams[0].n)}</small><b>${sc[0]}</b></div>
-      <div class="clock"><small>${half}</small><b id="tm">${mmss(Math.ceil(TM.left))}</b>
-        <div class="tb"><button data-a="tgo">${TM.run?'일시정지':'시작'}</button>${TM.half===1&&done?'<button class="pri" data-a="tnext">후반 시작</button>':'<button data-a="trst">처음</button>'}</div></div>
+      <div class="clock"><small>GAME</small><b>${r.games.length+1}</b></div>
       <div class="sb tt1"><small>${esc(s.teams[1].n)}</small><b>${sc[1]}</b></div></div>
-    <button class="pri save" data-a="endgame">경기 저장 · ${sc[0]} : ${sc[1]}</button></div>
+    <button class="pri save" data-a="endgame">${r.games.length+1}경기 저장 · ${sc[0]} : ${sc[1]}</button></div>
   ${free.length?`<div class="card"><h2>팀을 정해주세요</h2>${free.map(p=>`<div class="row"><span style="flex:1">${av(p.id)}${esc(p.name)}</span><button class="chip tt0" data-a="side" data-i="${p.id}|0">${esc(s.teams[0].n)}</button><button class="chip tt1" data-a="side" data-i="${p.id}|1">${esc(s.teams[1].n)}</button></div>`).join('')}</div>`:''}
   <div class="two">${att.length?`<div class="card">${col(0)}</div><div class="card">${col(1)}</div>`:'<div class="card mut">아래에서 오늘 출석한 선수를 눌러주세요</div>'}</div>
   <div class="card"><h2>출석 ${r.att.length}명 (참여 중인 선수 · 눌러서 체크)</h2>${(S.votes[r.date]||[]).some(id=>pl(id)&&!r.att.includes(id))?'<button data-a="attv" style="margin-bottom:10px">일정 참여자 불러오기</button>':''}<div class="chips">${ids.map(id=>`<button class="${r.att.includes(id)?'on':''}" data-a="att" data-i="${id}">${nm(id)}</button>`).join('')}</div>
