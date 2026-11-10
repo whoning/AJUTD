@@ -193,6 +193,7 @@ h2{font-family:inherit;font-style:normal;font-size:13px;font-weight:700;letter-s
  nav button{flex:1;padding:8px 2px;min-height:44px;font-size:13px;white-space:nowrap}
 }
 /* 라인업: 큰 숫자를 뒤에 깐 선수 타일 + 선택한 선수 상세 */
+.chips button.no{background:var(--neg-bg);border-color:transparent;color:var(--neg-ink)}
 .lu{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .lt{position:relative;overflow:hidden;min-height:0;padding:0 0 8px;border:1px solid var(--rule);border-radius:14px;background:rgba(255,255,255,.06);font-weight:700;text-align:center}
 .lt.sel{border-color:var(--lime);box-shadow:0 0 15px rgba(212,255,58,.35)}
@@ -224,7 +225,7 @@ const today=()=>new Date().toISOString().slice(0,10);
 // ▼ 매달 카톡 투표 결과 [날짜, 투표 인원] — 투표 이미지로 이 줄만 갱신
 const SCHED=[['2026-11-01',7],['2026-11-08',5],['2026-11-15',8],['2026-11-22',6],['2026-11-29',5]];
 let S={};try{S=JSON.parse(localStorage.getItem(K))||{}}catch(e){}
-S.players??=[];S.seasons??=[];S.dues??={};S.draft??=[];S.tally??={};S.gt??={};S.votes??={};S.info??={};S.sid??=S.seasons.at(-1)?.id;
+S.players??=[];S.seasons??=[];S.dues??={};S.draft??=[];S.tally??={};S.gt??={};S.votes??={};S.plab??={};S.info??={};S.sid??=S.seasons.at(-1)?.id;
 let cp=null,opsTab='s',tab='c',yr=+today().slice(0,4),copied=false;
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}sync()};
 // ── 클라우드 (Supabase): 1번 칸 = 공개(명단·경기·일정), 2번 칸 = 운영자만(회비·계좌) ──
@@ -232,12 +233,12 @@ const SB_URL='https://vxmhkdjegbrpxhaocdcf.supabase.co',SB_KEY='sb_publishable_Z
 const sb=window.supabase?.createClient(SB_URL,SB_KEY)||null;   // 불러오지 못하면 이 기기에서만 쓰는 모드
 let OP=!sb,READY=!sb,REMOTE_EMPTY=false,okMig=false,P2=!sb,net='',loginErr='',tm1=null;
 const REV={1:0,2:0},LAST={};
-const pubOf=()=>({players:S.players,seasons:S.seasons,votes:S.votes,info:S.info,infoDef:S.infoDef||null});
+const pubOf=()=>({players:S.players,seasons:S.seasons,votes:S.votes,plab:S.plab,info:S.info,infoDef:S.infoDef||null});
 const prvOf=()=>({dues:S.dues,acct:S.acct||''});
 const setNet=t=>{net=t;const e=$('#st');if(e)e.textContent=t};
 function applyRow(id,d){
   if(id===1){if(!d.players){REMOTE_EMPTY=true;return}
-    REMOTE_EMPTY=false;Object.assign(S,{players:d.players,seasons:d.seasons||[],votes:d.votes||{},info:d.info||{},infoDef:d.infoDef||undefined});
+    REMOTE_EMPTY=false;Object.assign(S,{players:d.players,seasons:d.seasons||[],votes:d.votes||{},plab:d.plab||{},info:d.info||{},infoDef:d.infoDef||undefined});
     if(!S.seasons.some(s=>s.id===S.sid))S.sid=S.seasons.at(-1)?.id}
   else{P2=true;if(!('dues' in d))return;S.dues=d.dues||{};S.acct=d.acct||''}
   REV[id]=d.rev||0;LAST[id]=JSON.stringify(id===1?pubOf():prvOf())}
@@ -283,6 +284,7 @@ const av=id=>{const i=Math.max(0,S.players.findIndex(p=>p.id===id)),h=[210,28,15
   return `<span class="av" style="background:hsl(${h} 75% 91%);color:hsl(${h} 60% 22%)">${esc((pl(id)?.name||'?').slice(0,1))}</span>`};
 const teamOf=(s,id)=>s.teams.findIndex(t=>t.ids.includes(id));
 const score=g=>[0,1].map(t=>g.filter(x=>x.t===t&&(x.p||x.og)).length);
+const LG=7,isFree=r=>r.att.length<LG;   // 출석 7명 미만 = 자유경기
 const curRound=s=>s.rounds.find(r=>r.id===S.rid)||s.rounds.at(-1);
 // 일정 날짜의 라운드를 찾고, 없으면 그날 참여자를 출석으로 넣어 새로 만든다
 function roundFor(d){const s=se();let r=s.rounds.find(x=>x.date===d);
@@ -297,9 +299,10 @@ function calc(s){
   const T=s.base.rec.map(r=>({...r})),P={},g=id=>P[id]??={g:0,a:0,t:0};
   for(const [id,v] of Object.entries(s.base.p))Object.assign(g(id),v);
   let R=s.base.rounds;
-  s.rounds.forEach(r=>{R++;r.att.forEach(id=>g(id).t++);
+  s.rounds.forEach(r=>{if(r.date>today()||!(r.att.length||r.games.length))return;   // 아직 안 한 날짜·빈 라운드는 세지 않음
+    R++;r.att.forEach(id=>g(id).t++);const lg=!isFree(r);
     r.games.forEach(m=>{const [a,b]=score(m);
-      if(a>b){T[0].w++;T[1].l++}else if(a<b){T[1].w++;T[0].l++}else{T[0].d++;T[1].d++}
+      if(!lg){}else if(a>b){T[0].w++;T[1].l++}else if(a<b){T[1].w++;T[0].l++}else{T[0].d++;T[1].d++}
       m.forEach(x=>{if(x.p)g(x.p).g++;if(x.a)g(x.a).a++;if(x.og)g(x.og).o=(g(x.og).o||0)+1})})});
   return {T,P,R}}
 
@@ -319,6 +322,10 @@ const A={
   vt(i){const [d,id]=i.split('|'),a=S.votes[d]??=[],k=a.indexOf(id);k<0?a.push(id):a.splice(k,1)},
   newr(){const s=se();if(!s)return;const d=prompt('라운드 날짜',today());if(!d)return;
     const r={id:uid(),date:d,att:[],games:[]};s.rounds.push(r);S.rid=r.id},
+  delr(){const s=se(),r=curRound(s);if(r&&confirm(r.date+' 라운드를 지울까요? 경기 '+r.games.length+'개와 출석 기록이 사라져요')){s.rounds=s.rounds.filter(x=>x!==r);S.rid=null}},
+  // 플랩 참여 여부: 누를 때마다 참여 → 미참여 → 미정
+  pl3(i){const [d,id]=i.split('|'),m=S.plab[d]??={};if(m[id]==='y')m[id]='n';else if(m[id]==='n')delete m[id];else m[id]='y'},
+  popen:i=>S.popen=S.popen===i?null:i,
   gor(d){if(se()&&roundFor(d))tab='g'},
   attv(){const r=curRound(se());(S.votes[r.date]||[]).forEach(id=>{if(pl(id)&&!r.att.includes(id))r.att.push(id)})},
   att(i){const r=curRound(se());const k=r.att.indexOf(i);k<0?r.att.push(i):r.att.splice(k,1)},
@@ -387,9 +394,9 @@ setInterval(()=>{if(!TM.run)return;const now=Date.now();TM.left=Math.max(0,TM.le
   if(TM.left<=0){TM.run=false;navigator.vibrate?.([300,150,300]);if(tab==='g')render()}},250);
 const gtOf=(s,id)=>S.gt[id]??teamOf(s,id);
 
-function vGame(){const s=se();if(!s)return none;const r=curRound(s),fr=SCHED.map(x=>x[0]).filter(d=>d<=today()&&!s.rounds.some(x=>x.date===d));
+function vGame(){const s=se();if(!s)return none;const r=curRound(s),fr=SCHED.map(x=>x[0]).filter(d=>d>=today()&&!s.rounds.some(x=>x.date===d));
   const head=`<div class="card"><div class="row" style="margin:0"><select data-sel="r">${r?'':'<option value="">라운드 선택</option>'}${s.rounds.map((x,i)=>`<option value="${x.id}" ${r&&x.id===r.id?'selected':''}>${s.base.rounds+i+1}R · ${esc(x.date)}</option>`).join('')}${fr.map(d=>`<option value="d:${d}">＋ ${d.slice(5).replace('-','/')} 일정으로 새 라운드</option>`).join('')}</select>
-    ${OP?'<button class="pri" data-a="newr">＋ 새 라운드</button>':''}</div></div>`;
+    ${OP?'<button class="pri" data-a="newr">＋ 새 라운드</button>':''}${OP&&r?'<button class="x" data-a="delr">라운드 삭제</button>':''}</div></div>`;
   if(!r)return head;
   const ids=[...new Set([...S.players.filter(p=>p.m).map(p=>p.id),...r.att])].filter(pl);
   const att=r.att.map(pl).filter(Boolean),side=id=>gtOf(s,id);
@@ -413,7 +420,7 @@ function vGame(){const s=se();if(!s)return none;const r=curRound(s),fr=SCHED.map
   <div class="card"><h2>출석 ${r.att.length}명 (참여 중인 선수 · 눌러서 체크)</h2>${(S.votes[r.date]||[]).some(id=>pl(id)&&!r.att.includes(id))?'<button data-a="attv" style="margin-bottom:10px">일정 참여자 불러오기</button>':''}<div class="chips">${ids.map(id=>`<button class="${r.att.includes(id)?'on':''}" data-a="att" data-i="${id}">${nm(id)}</button>`).join('')}</div>
     <div class="row" style="margin-top:12px"><input id="gn" placeholder="용병 이름 직접 입력"><button data-a="addn">추가</button></div>
     ${guests.length?`<div class="row"><select id="gs"><option value="">미참여·용병 추가</option>${guests.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select><button data-a="addg">추가</button></div>`:''}</div>
-  <div class="card"><h2>이 라운드 경기 (${r.games.length})</h2><ul>${r.games.map((m,i)=>{const [x,y]=score(m);
+  <div class="card"><h2>이 라운드 경기 (${r.games.length})${isFree(r)?' · 자유경기라 리그 승패에는 반영하지 않아요':''}</h2><ul>${r.games.map((m,i)=>{const [x,y]=score(m);
     return `<li><span>${i+1}경기 <b class="t0">${x}</b> : <b class="t1">${y}</b> <span class="mut">${x>y?esc(s.teams[0].n)+' 승':x<y?esc(s.teams[1].n)+' 승':'무'}</span><br><span class="mut">${gsum(m)}</span></span><button class="x" data-a="delgame" data-i="${i}">삭제</button></li>`}).join('')}</ul></div>`}
 
 // ── 영어 이니셜: 한글 이름의 첫 글자를 자동 변환 (선수·백업에서 직접 고칠 수 있음) ──
@@ -489,6 +496,11 @@ const venueUI=(d,ids)=>{const f=infoOf(d);
   return `<div class="row" style="margin-top:10px"><input data-vi="${d}|t" value="${esc(f.t)}" placeholder="시간 (08-10)" style="max-width:110px"><input data-vi="${d}|v" value="${esc(f.v)}" placeholder="구장 이름"></div>
     <div class="row"><input data-vi="${d}|a" value="${esc(f.a)}" placeholder="주소"></div>
     <textarea readonly rows="7" style="width:100%;font:inherit;border:1px solid var(--control);border-radius:var(--rc);padding:8px;background:var(--surface);color:inherit">${esc(noticeMsg(d,ids))}</textarea>`};
+function plabUI(d,ids,kind,t,mems){if(kind!=='자유경기'||d<t)return '';
+  const pm=S.plab[d]||{},c=ids.length?ids.map(pl).filter(Boolean):mems,y=c.filter(p=>pm[p.id]==='y').length,n=c.filter(p=>pm[p.id]==='n').length;
+  return `<div style="margin-top:8px;font-size:14px"><b>플랩풋볼</b> 참여 <b class="pos">${y}</b> · 미참여 <b class="neg">${n}</b> · 미정 ${c.length-y-n}</div>
+    <button style="min-height:32px;padding:2px 12px;margin-top:8px" data-a="popen" data-i="${d}">${S.popen===d?'플랩 체크 접기':'플랩 참여 체크'}</button>
+    ${S.popen===d?`<div class="chips" style="margin-top:8px">${c.map(p=>`<button class="${pm[p.id]==='y'?'on':pm[p.id]==='n'?'no':''}" data-a="pl3" data-i="${d}|${p.id}">${esc(p.name)}${pm[p.id]==='y'?' ○':pm[p.id]==='n'?' ✕':''}</button>`).join('')}</div><div class="mut" style="margin-top:6px">이름을 누를 때마다 참여 ○ → 미참여 ✕ → 미정으로 바뀌어요</div>`:''}`}
 function vSched(){const t=today(),M={},mems=S.players.filter(p=>p.m),s=se();
   // 선수를 시즌 팀(레드/블루/팀 없음)별로 묶어서 그린다
   const by=(arr,fn)=>[0,1,-1].map(k=>[k,arr.filter(p=>(s?teamOf(s,p.id):-1)===k)]).filter(x=>x[1].length).map(([k,L])=>fn(k,L)).join('');
@@ -498,7 +510,7 @@ function vSched(){const t=today(),M={},mems=S.players.filter(p=>p.m),s=se();
     const lg=kind==='리그'?'lg':'';
     return `<li style="${d<t?'opacity:.55':''}"><div class="dt ${lg}"><b>${+d.slice(8)}</b><span>${'일월화수목금토'[new Date(d+'T00:00:00').getDay()]}</span></div>
       <div style="flex:1;min-width:0"><b>${kind}</b><div class="mut">${how}</div><div class="meter"><i class="${lg}" style="width:${Math.min(n,10)*10}%"></i><u></u></div>${by(ids.map(pl).filter(Boolean),(k,L)=>`<div style="margin-top:8px;font-size:14px">${lab(k)} <b>${L.length}명</b> · ${L.map(p=>esc(p.name)).join(' · ')}</div>`)}
-        ${d<=t&&s?`<button style="min-height:32px;padding:2px 12px;margin-top:8px" data-a="gor" data-i="${d}">${s.rounds.some(x=>x.date===d)?'경기 기록 보기':'경기 기록 시작'}</button>`:''}
+        ${plabUI(d,ids,kind,t,mems)}${d>=t&&s?`<button style="min-height:32px;padding:2px 12px;margin-top:8px" data-a="gor" data-i="${d}">${s.rounds.some(x=>x.date===d)?'오늘의 경기 열기':'오늘의 경기 준비'}</button>`:''}
         ${OP?`<button style="min-height:32px;padding:2px 12px;margin-top:8px" data-a="vopen" data-i="${d}">${S.open===d?'참여자 접기':'참여자 선택'}</button>`:''}
         ${OP?`<button style="min-height:32px;padding:2px 12px;margin-top:8px" data-a="nopen" data-i="${d}">${S.nopen===d?'공지 접기':'공지 보기'}</button>`:''}
         ${OP?`<button class="pri" style="min-height:32px;padding:2px 12px;margin-top:8px" data-a="cpd" data-i="${d}">${cp===d?'복사됨 ✓':'공지 복사'}</button>`:''}
@@ -558,13 +570,14 @@ function vLogin(){if(OP)return '<div class="card">운영자로 로그인되어 �
 function render(){
   if(sb&&tab==='o'&&!OP)tab='c';
   $('#ss').innerHTML=S.seasons.map(s=>`<option value="${s.id}" ${s.id===S.sid?'selected':''}>${esc(s.name)}</option>`).join('')||'<option>시즌 없음</option>';
-  $('#nav').innerHTML=[['g','경기 기록'],['c','일정'],['u','라인업'],['r','순위'],...(OP?[['o','운영자']]:[])].map(([k,t])=>`<button class="${tab===k?'on':''}" data-a="tab" data-i="${k}">${t}</button>`).join('');
+  $('#nav').innerHTML=[['g','오늘 경기'],['c','일정'],['u','라인업'],['r','순위'],...(OP?[['o','운영자']]:[])].map(([k,t])=>`<button class="${tab===k?'on':''}" data-a="tab" data-i="${k}">${t}</button>`).join('');
   const na=document.querySelector('[data-a=newse]');if(na)na.hidden=!OP;
   $('#auth').innerHTML=sb?(OP?'<button data-a="dologout">로그아웃</button>':'<button data-a="tab" data-i="l">운영자 로그인</button>'):'';
   const st=$('#st');if(st)st.textContent=net;
-  const T={g:'경기 기록',c:'일정',u:'라인업',r:'순위',o:'운영자',l:'운영자 로그인'};
+  const T={g:'오늘의 경기',c:'일정',u:'라인업',r:'순위',o:'운영자',l:'운영자 로그인'};
   const nx=SCHED.filter(([d])=>d>=today()).sort()[0],late=S.players.filter(p=>p.m&&unpaidOf(p.id).length).length;
-  const sub={c:nx?`다음 경기 ${nx[0].slice(5).replace('-','/')} · 투표 ${nx[1]}명 · ${guide(nx[1])[1]}`:'',
+  const cr=se()&&curRound(se());
+  const sub={g:cr?`${cr.date.slice(5).replace('-','/')} · 출석 ${cr.att.length}명 · ${isFree(cr)?'자유경기 (골·어시만 기록, 리그 승패 미반영)':'리그'}`:'',c:nx?`다음 경기 ${nx[0].slice(5).replace('-','/')} · 투표 ${nx[1]}명 · ${guide(nx[1])[1]}`:'',
     o:opsTab==='d'?(late?`회비 미입금 ${late}명 · 월 ${DUE.toLocaleString()}원`:'회비 미입금 없음'):''}[tab]||'';
   $('#v').innerHTML=`<h1>${T[tab]}</h1><p class="sub">${esc(sub)}</p>`+{g:vGame,c:vSched,u:vLine,r:vRank,o:vOps,l:vLogin}[tab]();
   fit();
