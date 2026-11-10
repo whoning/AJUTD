@@ -195,6 +195,21 @@ h2{font-family:inherit;font-style:normal;font-size:13px;font-weight:700;letter-s
 /* 라인업: 큰 숫자를 뒤에 깐 선수 타일 + 선택한 선수 상세 */
 .chips button.no{background:var(--neg-bg);border-color:transparent;color:var(--neg-ink)}
 .sc td:first-child,.sc th:first-child{position:sticky;left:0;z-index:1;background:#0a130c}
+.brand{cursor:pointer;margin:0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+@media(min-width:900px){.brand small{display:none}}   /* 왼쪽 메뉴는 좁아서 로고와 아이콘만 */
+.auth{margin:0}.auth button{display:grid;place-items:center;width:40px;height:40px;min-height:0;padding:0;border-radius:50%}
+.ssn{display:flex;align-items:baseline;gap:10px;margin:10px 0 16px}
+.ssn b{font:700 68px/.85 "Teko",sans-serif;letter-spacing:.02em;color:var(--lime);text-shadow:0 0 18px rgba(212,255,58,.4)}
+.ssn span{font-size:30px;font-weight:800;letter-spacing:-.02em}
+.ssn small{align-self:center;padding-left:10px;border-left:2px solid var(--lime);font:700 11px/1.3 "Pretendard",sans-serif;letter-spacing:.24em;color:var(--muted)}
+.hero{border-color:rgba(212,255,58,.35);background:linear-gradient(150deg,rgba(212,255,58,.16),rgba(6,14,8,.82) 55%)}
+.hk{display:flex;justify-content:space-between;align-items:center}
+.hk .chip{background:var(--neu-bg);font-size:12px;font-weight:700;letter-spacing:.08em}.hk .chip.lgc{background:var(--lime);color:#0a1a00}
+.hk b{font:700 34px/1 "Teko",sans-serif;color:var(--lime)}
+.hd{font:700 76px/1 "Teko",sans-serif;margin:8px 0 0}.hd small{margin-left:10px;font:700 18px "Pretendard",sans-serif;color:var(--muted)}
+.hn{margin:12px 0 2px;font-size:17px}.hn b{margin-right:2px;font:700 36px/1 "Teko",sans-serif;color:var(--lime)}
+.hh{display:flex;justify-content:space-between;align-items:center;margin:6px 0 10px}.hh .sh{margin:0}.hh button{min-height:32px;padding:2px 12px;font-size:13px}
 .lu{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .lt{position:relative;overflow:hidden;min-height:0;padding:0 0 8px;border:1px solid var(--rule);border-radius:14px;background:rgba(255,255,255,.06);font-weight:700;text-align:center}
 .lt.sel{border-color:var(--lime);box-shadow:0 0 15px rgba(212,255,58,.35)}
@@ -215,9 +230,9 @@ h2{font-family:inherit;font-style:normal;font-size:13px;font-weight:700;letter-s
 </head>
 <body>
 <div class="app"><aside>
-<div class="brand"><b>AJ</b>UTD<small>FUTSAL CLUB</small></div>
+<div class="top"><div class="brand" data-a="tab" data-i="h"><b>AJ</b>UTD<small>FUTSAL CLUB</small></div><div id="auth" class="auth"></div></div>
 <div class="row"><select id="ss" data-sel="s"></select><button data-a="newse">새 시즌</button></div>
-<nav id="nav"></nav><div id="auth" class="auth"></div><div id="st" class="mut"></div></aside>
+<nav id="nav"></nav><div id="st" class="mut"></div></aside>
 <main id="v"></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
@@ -227,7 +242,7 @@ const today=()=>new Date().toISOString().slice(0,10);
 const SCHED0=[['2026-11-01',7],['2026-11-08',5],['2026-11-15',8],['2026-11-22',6],['2026-11-29',5]];
 let S={};try{S=JSON.parse(localStorage.getItem(K))||{}}catch(e){}
 S.players??=[];S.seasons??=[];S.dues??={};S.draft??=[];S.tally??={};S.gt??={};S.votes??={};S.plab??={};S.info??={};S.sid??=S.seasons.at(-1)?.id;
-let duesAll=false,cp=null,opsTab='s',tab='c',yr=+today().slice(0,4),copied=false;
+let duesAll=false,cp=null,opsTab='s',tab='h',yr=+today().slice(0,4),copied=false;
 const sched=()=>S.sched||SCHED0;
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}sync()};
 // ── 클라우드 (Supabase): 1번 칸 = 공개(명단·경기·일정), 2번 칸 = 운영자만(회비·계좌) ──
@@ -432,6 +447,8 @@ function fit(){document.querySelectorAll('.mg').forEach(g=>{const WX=1.12,w=g.fi
   g.setAttribute('transform',`translate(46 75) scale(${s*WX} ${s}) skewX(-9)`)})}
 
 let rkKey='o';
+const pcard=(s,p,i,big)=>`<div class="pc ${p.team?'b':'r'} ${big?'k'+(i+1):''}"><span class="cr">#${i+1}</span><div class="ovr">${p.o}</div><div class="ct">${esc(s.teams[p.team].n)}</div><div class="cf">${mono(p.id,p.team)}</div><div class="cn">${nm(p.id)}</div><div class="cs"><span><b>${p.g}</b>골</span><span><b>${p.a}</b>어시</span><span><b>${p.t}</b>출석</span></div></div>`;
+const boardHTML=(s,T)=>{const tb=i=>`<div class="bt ${i?'b':'r'}"><small>${esc(s.teams[i].n)}</small><div class="pts">${T[i].w*3+T[i].d}<span> PTS</span></div><div class="rec">${T[i].w}승 ${T[i].d}무 ${T[i].l}패 · ${T[i].w+T[i].d+T[i].l}경기</div></div>`;return `<div class="board">${tb(0)}<div class="vs">VS</div>${tb(1)}</div>`};
 const rated=s=>{const {T,P,R}=calc(s);
   const ids=[...new Set([...s.teams.flatMap(t=>t.ids),...Object.keys(P)])].filter(id=>pl(id)&&!pl(id).guest&&!pl(id).name.includes('용병'));
   // 카드 왼쪽 위 숫자 = 100점 만점: 골 40(시즌 최다 대비) + 어시 30(시즌 최다 대비) + 출석 30(출석한 라운드 ÷ 전체)
@@ -446,13 +463,27 @@ function vLine(){const s=se();if(!s)return none;const {R,rows}=rated(s),all=[...
     <div class="ln">${nm(p.id)}</div><div class="mut">${esc(s.teams[pt].n)} · 종합 ${all.indexOf(p)+1}위</div>
     <div class="sxs">${[[p.g,'골'],[p.a,'어시'],[p.t+'/'+R,'출석'],[p.o,'점수 (100점 만점)']].map(([v,l])=>`<div class="sx"><b>${v}</b>${l}</div>`).join('')}</div></div>`:''}
   <div class="two">${TL.map((L,t)=>`<div class="card"><h2 class="t${t}">${esc(s.teams[t].n)} 라인업 · ${L.length}명</h2><div class="lu">${L.map(x=>`<button class="lt ${x===p?'sel':''}" data-a="lup" data-i="${x.id}"><i>${x.o}</i>${mono(x.id,t)}<span>${nm(x.id)}</span></button>`).join('')||'<span class="mut">참여 중인 선수가 없어요</span>'}</div></div>`).join('')}</div>`}
+// 홈(대시보드): 다음 경기 + 리그 현황 + TOP 3
+function vHome(){const s=se();if(!s)return none;const {T,P,R,rows}=rated(s),t=today(),nx=[...sched()].filter(x=>x[0]>=t).sort()[0];
+  let hero='<div class="card mut">예정된 일정이 없어요</div>';
+  if(nx){const [d,n0]=nx,ids=(S.votes[d]||[]).filter(pl),n=ids.length||n0,[how,kind]=guide(n),f=infoOf(d),dd=Math.round((new Date(d+'T00:00:00')-new Date(t+'T00:00:00'))/864e5),tc=k=>ids.filter(id=>teamOf(s,id)===k).length;
+    hero=`<div class="card hero"><div class="hk"><span class="chip ${kind==='리그'?'lgc':''}">NEXT MATCH · ${kind}</span><b>${dd?'D-'+dd:'TODAY'}</b></div>
+      <div class="hd">${+d.slice(5,7)}/${+d.slice(8)}<small>${'일월화수목금토'[new Date(d+'T00:00:00').getDay()]}요일</small></div>
+      <div class="mut">${esc(f.t)} · ${esc(f.v)}</div>
+      <div class="hn"><b>${n}</b>명 참여${ids.length?` · <span class="t0">${esc(s.teams[0].n)} ${tc(0)}</span> · <span class="t1">${esc(s.teams[1].n)} ${tc(1)}</span>`:''}</div>
+      <div class="mut">${how}</div>
+      <div class="row" style="margin:14px 0 0"><button class="pri" data-a="tab" data-i="c">일정 보기</button>${dd===0?`<button data-a="gor" data-i="${d}">오늘의 경기 열기</button>`:''}</div></div>`}
+  const top=rows.filter(x=>x.g||x.a||x.t).sort((a,b)=>b.o-a.o).slice(0,3),G=Object.values(P).reduce((n,x)=>n+x.g,0),M=T[0].w+T[0].d+T[0].l;
+  const hh=(h,k)=>`<div class="hh"><h2 class="sh">${h}</h2><button data-a="tab" data-i="${k}">전체 보기 ›</button></div>`;
+  return hero+hh('LEAGUE','r')+boardHTML(s,T)
+    +`<div class="sxs" style="grid-template-columns:repeat(3,1fr);margin:0 0 22px">${[[R,'라운드'],[M,'리그 경기'],[G,'골']].map(([v,l])=>`<div class="sx"><b>${v}</b>${l}</div>`).join('')}</div>`
+    +(top.length?hh('TOP 3','r')+`<div class="top3">${top.map((p,i)=>pcard(s,p,i,true)).join('')}</div>`:'')}
 function vRank(){const s=se();if(!s)return none;const {T,P,R,ids,rows}=rated(s);
   const act=rows.filter(x=>x.g||x.a||x.t),idle=rows.filter(x=>!(x.g||x.a||x.t));
   const L=[...act].sort((a,b)=>b[rkKey]-a[rkKey]||b.o-a.o);
-  const card=(p,i,big)=>`<div class="pc ${p.team?'b':'r'} ${big?'k'+(i+1):''}"><span class="cr">#${i+1}</span><div class="ovr">${p.o}</div><div class="ct">${esc(s.teams[p.team].n)}</div><div class="cf">${mono(p.id,p.team)}</div><div class="cn">${nm(p.id)}</div><div class="cs"><span><b>${p.g}</b>골</span><span><b>${p.a}</b>어시</span><span><b>${p.t}</b>출석</span></div></div>`;
-  const tb=i=>`<div class="bt ${i?'b':'r'}"><small>${esc(s.teams[i].n)}</small><div class="pts">${T[i].w*3+T[i].d}<span> PTS</span></div><div class="rec">${T[i].w}승 ${T[i].d}무 ${T[i].l}패 · ${T[i].w+T[i].d+T[i].l}경기</div></div>`;
+  const card=(p,i,big)=>pcard(s,p,i,big);
   const og=ids.filter(id=>P[id]?.o);
-  return `<div class="board">${tb(0)}<div class="vs">VS</div>${tb(1)}</div>
+  return `${boardHTML(s,T)}
   <div class="tabs">${[['o','종합'],['g','골'],['a','어시'],['t','출석']].map(([k,t])=>`<button class="${rkKey===k?'on':''}" data-a="rk" data-i="${k}">${t}</button>`).join('')}</div>
   ${L.length?`<h2 class="sh">TOP 3 <span class="mut">· ${R}라운드</span></h2><div class="top3">${L.slice(0,3).map((p,i)=>card(p,i,true)).join('')}</div>
   ${L.length>3?`<h2 class="sh">SQUAD</h2><div class="pgrid">${L.slice(3).map((p,i)=>card(p,i+3)).join('')}</div>`:''}`:'<div class="card mut">아직 기록이 없어요</div>'}
@@ -581,19 +612,22 @@ function vLogin(){if(OP)return '<div class="card">운영자로 로그인되어 �
     <div class="row"><input id="lp" type="password" autocomplete="current-password" placeholder="비밀번호"></div>
     <button class="pri" data-a="dologin">로그인</button><div class="neg" style="margin-top:8px">${esc(loginErr)}</div></div>`}
 function render(){
-  if(sb&&tab==='o'&&!OP)tab='c';
+  if(sb&&tab==='o'&&!OP)tab='h';
   $('#ss').innerHTML=S.seasons.map(s=>`<option value="${s.id}" ${s.id===S.sid?'selected':''}>${esc(s.name)}</option>`).join('')||'<option>시즌 없음</option>';
-  $('#nav').innerHTML=[['g','오늘 경기'],['c','일정'],['u','라인업'],['r','순위'],['k','규칙'],...(OP?[['o','운영자']]:[])].map(([k,t])=>`<button class="${tab===k?'on':''}" data-a="tab" data-i="${k}">${t}</button>`).join('');
+  $('#nav').innerHTML=[['h','홈'],['g','경기'],['c','일정'],['u','라인업'],['r','순위'],['k','규칙'],...(OP?[['o','운영자']]:[])].map(([k,t])=>`<button class="${tab===k?'on':''}" data-a="tab" data-i="${k}">${t}</button>`).join('');
   const na=document.querySelector('[data-a=newse]');if(na)na.hidden=!OP;
-  $('#auth').innerHTML=sb?(OP?'<button data-a="dologout">로그아웃</button>':'<button data-a="tab" data-i="l">운영자 로그인</button>'):'';
+  const lock=d=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="${d}"/></svg>`;
+  $('#auth').innerHTML=sb?(OP?`<button class="on" data-a="dologout" aria-label="로그아웃" title="로그아웃 (운영자로 로그인됨)">${lock('M8 11V7a4 4 0 0 1 7.6-1.7')}</button>`:`<button data-a="tab" data-i="l" aria-label="운영자 로그인" title="운영자 로그인">${lock('M8 11V7a4 4 0 0 1 8 0v4')}</button>`):'';
   const st=$('#st');if(st)st.textContent=net;
-  const T={g:'오늘의 경기',c:'일정',u:'라인업',r:'순위',k:'운영규칙',o:'운영자',l:'운영자 로그인'};
+  const T={h:'대시보드',g:'오늘의 경기',c:'일정',u:'라인업',r:'순위',k:'운영규칙',o:'운영자',l:'운영자 로그인'};
   const nx=sched().filter(([d])=>d>=today()).sort()[0],late=S.players.filter(p=>p.m&&unpaidOf(p.id).length).length;
   const cr=se()&&curRound(se());
-  const sub={g:cr?`${cr.date.slice(5).replace('-','/')} · 출석 ${cr.att.length}명 · ${isFree(cr)?'자유경기 (골·어시만 기록, 리그 승패 미반영)':'리그'}`:'',c:nx?`다음 경기 ${nx[0].slice(5).replace('-','/')} · 투표 ${nx[1]}명 · ${guide(nx[1])[1]}`:'',
+  const sub={h:se()?.name||'',g:cr?`${cr.date.slice(5).replace('-','/')} · 출석 ${cr.att.length}명 · ${isFree(cr)?'자유경기 (골·어시만 기록, 리그 승패 미반영)':'리그'}`:'',c:nx?`다음 경기 ${nx[0].slice(5).replace('-','/')} · 투표 ${nx[1]}명 · ${guide(nx[1])[1]}`:'',
     o:opsTab==='d'?(late?`회비 미입금 ${late}명 · 월 ${DUE.toLocaleString()}원`:'회비 미입금 없음'):''}[tab]||'';
   const sx=$('.sc')?.scrollLeft;
-  $('#v').innerHTML=`<h1>${T[tab]}</h1><p class="sub">${esc(sub)}</p>`+{g:vGame,c:vSched,u:vLine,r:vRank,k:vRules,o:vOps,l:vLogin}[tab]();
+  const sn=(se()?.name||'AJ UTD').match(/^(\d{4})\s*(.*)$/);   // 홈 제목: 시즌 이름을 크게 (연도는 라임색 숫자)
+  const head=tab==='h'?`<h1 class="ssn">${sn?`<b>${sn[1]}</b><span>${esc(sn[2])}</span>`:`<span>${esc(se()?.name||'AJ UTD')}</span>`}<small>SEASON</small></h1>`:`<h1>${T[tab]}</h1><p class="sub">${esc(sub)}</p>`;
+  $('#v').innerHTML=head+{h:vHome,g:vGame,c:vSched,u:vLine,r:vRank,k:vRules,o:vOps,l:vLogin}[tab]();
   if(sx&&$('.sc'))$('.sc').scrollLeft=sx;
   fit();
 }
