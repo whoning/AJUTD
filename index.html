@@ -242,7 +242,7 @@ const today=()=>new Date().toISOString().slice(0,10);
 const SCHED0=[['2026-11-01',7],['2026-11-08',5],['2026-11-15',8],['2026-11-22',6],['2026-11-29',5]];
 let S={};try{S=JSON.parse(localStorage.getItem(K))||{}}catch(e){}
 S.players??=[];S.seasons??=[];S.dues??={};S.draft??=[];S.tally??={};S.gt??={};S.votes??={};S.plab??={};S.info??={};S.sid??=S.seasons.at(-1)?.id;
-let duesAll=false,cp=null,opsTab='s',tab='h',yr=+today().slice(0,4),copied=false;
+let popen=null,vo=null,duesAll=false,cp=null,opsTab='s',tab='h',yr=+today().slice(0,4),copied=false;
 const sched=()=>S.sched||SCHED0;
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}sync()};
 // ── 클라우드 (Supabase): 1번 칸 = 공개(명단·경기·일정), 2번 칸 = 운영자만(회비·계좌) ──
@@ -335,7 +335,9 @@ const A={
   rk:i=>rkKey=i,
   lup:i=>luP=i,
   dologin(){doLogin()},dologout(){doLogout()},migrate(){okMig=true},
-  vopen:i=>S.open=S.open===i?null:i,
+  vopen:i=>vo=vo===i?null:i,
+  addvg(i){const n=$('#vg').value.trim();if(!n)return;let p=S.players.find(x=>x.name===n);
+    if(!p){p={id:uid(),name:n,m:false,guest:true};S.players.push(p)}const a=S.votes[i]??=[];if(!a.includes(p.id))a.push(p.id)},
   nopen:i=>S.nopen=S.nopen===i?null:i,
   cpd(i){copyText(noticeMsg(i,S.votes[i]||[]));cp=i},
   vt(i){const [d,id]=i.split('|'),a=S.votes[d]??=[],k=a.indexOf(id);k<0?a.push(id):a.splice(k,1)},
@@ -344,14 +346,14 @@ const A={
   delr(){const s=se(),r=curRound(s);if(r&&confirm(r.date+' 라운드를 지울까요? 경기 '+r.games.length+'개와 출석 기록이 사라져요')){s.rounds=s.rounds.filter(x=>x!==r);S.rid=null}},
   // 플랩 참여 여부: 누를 때마다 참여 → 미참여 → 미정
   pl3(i){const [d,id]=i.split('|'),m=S.plab[d]??={};if(m[id]==='y')m[id]='n';else if(m[id]==='n')delete m[id];else m[id]='y'},
-  popen:i=>S.popen=S.popen===i?null:i,
+  popen:i=>popen=popen===i?null:i,
   gor(d){if(se()&&roundFor(d))tab='g'},
   attv(){const r=curRound(se());(S.votes[r.date]||[]).forEach(id=>{if(pl(id)&&!r.att.includes(id))r.att.push(id)})},
   att(i){const r=curRound(se());const k=r.att.indexOf(i);k<0?r.att.push(i):r.att.splice(k,1)},
   addn(){const n=$('#gn').value.trim();if(!n)return;let p=S.players.find(x=>x.name===n);
     if(!p){p={id:uid(),name:n,m:false,guest:true};S.players.push(p)}  // 같은 이름이 있으면 그 선수를 재사용
-    const r=curRound(se());if(!r.att.includes(p.id))r.att.push(p.id)},
-  addg(){const v=$('#gs').value;if(v)curRound(se()).att.push(v)},
+    const r=curRound(se());if(!r.att.includes(p.id))r.att.push(p.id);const v=S.votes[r.date];if(v?.length&&!v.includes(p.id))v.push(p.id)},
+  addg(){const v=$('#gs').value;if(!v)return;const r=curRound(se());if(!r.att.includes(v))r.att.push(v);const a=S.votes[r.date];if(a?.length&&!a.includes(v))a.push(v)},
   // 경기 후 선수별 골/어시를 입력 → 저장할 때 골·어시 기록으로 풀어서 넣는다
   inc(i){const [id,k,d]=i.split('|'),t=S.tally[id]??={g:0,a:0};t[k]=Math.max(0,(t[k]||0)+ +d)},
   side(i){const [id,t]=i.split('|');S.gt[id]=+t},
@@ -477,7 +479,8 @@ function vHome(){const s=se();if(!s)return none;const {T,P,R,rows}=rated(s),t=to
   const hh=(h,k)=>`<div class="hh"><h2 class="sh">${h}</h2><button data-a="tab" data-i="${k}">전체 보기 ›</button></div>`;
   return hero+hh('LEAGUE','r')+boardHTML(s,T)
     +`<div class="sxs" style="grid-template-columns:repeat(3,1fr);margin:0 0 22px">${[[R,'라운드'],[M,'리그 경기'],[G,'골']].map(([v,l])=>`<div class="sx"><b>${v}</b>${l}</div>`).join('')}</div>`
-    +(top.length?hh('TOP 3','r')+`<div class="top3">${top.map((p,i)=>pcard(s,p,i,true)).join('')}</div>`:'')}
+    +(top.length?hh('TOP 3','r')+`<div class="top3">${top.map((p,i)=>pcard(s,p,i,true)).join('')}</div>`:'')
+    +`<div class="card"><h2>HOW TO</h2><ul>${[['c','일정','날짜별 참여 인원과 명단 확인 · 자유경기 날은 플랩 참여를 눌러주세요'],['g','경기','일정에서 "오늘의 경기 준비" → 경기마다 골·어시 입력 후 저장'],['u','라인업','레드·블루 선수 카드 · 이름을 누르면 상세'],['r','순위','팀 승점과 개인 순위 (골·어시·출석)'],['k','규칙','운영규칙과 리그 기준']].map(([k,a,b])=>`<li data-a="tab" data-i="${k}" style="cursor:pointer"><span><b>${a}</b><div class="mut">${b}</div></span><span class="mut">›</span></li>`).join('')}</ul></div>`}
 function vRank(){const s=se();if(!s)return none;const {T,P,R,ids,rows}=rated(s);
   const act=rows.filter(x=>x.g||x.a||x.t),idle=rows.filter(x=>!(x.g||x.a||x.t));
   const L=[...act].sort((a,b)=>b[rkKey]-a[rkKey]||b.o-a.o);
@@ -495,11 +498,18 @@ function vRank(){const s=se();if(!s)return none;const {T,P,R,ids,rows}=rated(s);
 function vOps(){
   return (sb&&REMOTE_EMPTY&&!okMig?`<div class="card"><h2>클라우드가 비어 있어요</h2><p class="mut" style="margin:0 0 12px">이 기기의 기록을 올리면 모두가 볼 수 있어요. (선수·백업에서 백업 파일을 먼저 불러와도 됩니다)</p><button class="pri" data-a="migrate">이 기기의 기록을 클라우드로 올리기</button></div>`:'')+`<div class="seg">${[['s','시드'],['d','회비'],['c','일정'],['p','선수·백업']].map(([k,t])=>`<button class="${opsTab===k?'on':''}" data-a="ops" data-i="${k}">${t}</button>`).join('')}</div>`
     +(opsTab==='d'?vDues():opsTab==='c'?vSchedEdit():opsTab==='p'?vPlayers():vSeed())}
-function vSchedEdit(){const L=[...sched()].sort().reverse();
+function vSchedEdit(){const s=se(),L=[...sched()].sort().reverse(),mems=S.players.filter(p=>p.m),gs=S.players.filter(p=>p.guest||p.name.includes('용병'));
+  const by=(arr,fn)=>[0,1,-1].map(k=>[k,arr.filter(p=>(s?teamOf(s,p.id):-1)===k)]).filter(x=>x[1].length).map(([k,l])=>fn(k,l)).join('');
+  const lab=k=>k<0?'<span class="chip" style="background:var(--neu-bg)">팀 없음</span>':`<span class="chip tt${k}">${esc(s.teams[k].n)}</span>`;
+  // 멤버 + 용병 전체 + (멤버가 아니어도) 이미 고른 사람
+  const manage=d=>{const ids=S.votes[d]||[],pool=[...new Set([...mems,...gs,...ids.map(pl).filter(Boolean)])];
+    return by(pool,(k,l)=>`<div style="margin-top:10px">${lab(k)}<div class="chips" style="margin-top:6px">${l.map(p=>`<button class="${ids.includes(p.id)?'on':''}" data-a="vt" data-i="${d}|${p.id}">${esc(p.name)}${p.guest?' · 용병':''}</button>`).join('')}</div></div>`)
+      +`<div class="row" style="margin-top:12px"><input id="vg" placeholder="용병 이름 추가"><button data-a="addvg" data-i="${d}">추가</button></div>`};
   return `<div class="card"><h2>일정 추가 · 매달 투표 결과</h2>
     <div class="row"><input id="sd" type="date"><input id="sn" type="number" min="0" inputmode="numeric" placeholder="투표 인원 (선택)"><button class="pri" data-a="adds">추가</button></div>
-    <div class="mut">같은 날짜를 다시 추가하면 인원만 바뀌어요. 일정 탭에서 참여자를 고르면 그 인원이 우선 표시됩니다.</div></div>
-  <div class="card"><h2>등록된 일정 (${L.length})</h2><ul>${L.map(([d,n])=>`<li><span>${esc(d)} (${'일월화수목금토'[new Date(d+'T00:00:00').getDay()]}) · 투표 ${n}명${S.votes[d]?.length?` · 참여자 ${S.votes[d].length}명`:''}</span><button class="x" data-a="dels" data-i="${esc(d)}">삭제</button></li>`).join('')||'<li class="mut">등록된 일정이 없어요</li>'}</ul></div>`}
+    <div class="mut">같은 날짜를 다시 추가하면 인원만 바뀌어요. 아래 일정의 <b>참여자 관리</b>에서 참여자를 고르면 그 인원이 우선 표시됩니다.</div></div>
+  <div class="card"><h2>등록된 일정 (${L.length})</h2><ul>${L.map(([d,n])=>`<li style="display:block"><div class="row" style="margin:0;justify-content:space-between;flex-wrap:nowrap"><span>${esc(d)} (${'일월화수목금토'[new Date(d+'T00:00:00').getDay()]}) · 투표 ${n}명${S.votes[d]?.length?` · 참여자 ${S.votes[d].length}명`:''}</span><span style="flex:none"><button style="min-height:32px;padding:2px 12px" data-a="vopen" data-i="${esc(d)}">${vo===d?'접기':'참여자 관리'}</button><button class="x" data-a="dels" data-i="${esc(d)}">삭제</button></span></div>${vo===d?manage(d):''}</li>`).join('')||'<li class="mut">등록된 일정이 없어요</li>'}</ul></div>
+  <div class="card"><h2>용병 명단 (${gs.length}명)</h2><div class="chips">${gs.map(p=>`<span class="chip" style="background:var(--neu-bg)">${esc(p.name)} <button class="x" data-a="delp" data-i="${p.id}" style="padding:0 0 0 6px">✕</button></span>`).join('')||'<span class="mut">경기 탭이나 참여자 관리에서 넣은 용병이 여기 모여요</span>'}</div></div>`}
 function vSeed(){const s=se();if(!s)return none;const {P,R}=calc(s);
   const ids=[...new Set([...s.teams.flatMap(t=>t.ids),...Object.keys(P)])].filter(pl);
   const rows=ids.map(id=>{const x=P[id]||{g:0,a:0,t:0};return {id,...x,pt:x.g*3+x.a*2+x.t*5}}).sort((a,b)=>b.pt-a.pt);
@@ -531,8 +541,8 @@ const venueUI=(d,ids)=>{const f=infoOf(d);
 function plabUI(d,ids,kind,t,mems){if(kind!=='자유경기'||d<t)return '';
   const pm=S.plab[d]||{},c=ids.length?ids.map(pl).filter(Boolean):mems,y=c.filter(p=>pm[p.id]==='y').length,n=c.filter(p=>pm[p.id]==='n').length;
   return `<div style="margin-top:8px;font-size:14px"><b>플랩풋볼</b> 참여 <b class="pos">${y}</b> · 미참여 <b class="neg">${n}</b> · 미정 ${c.length-y-n}</div>
-    <button style="min-height:32px;padding:2px 12px;margin-top:8px" data-a="popen" data-i="${d}">${S.popen===d?'플랩 체크 접기':'플랩 참여 체크'}</button>
-    ${S.popen===d?`<div class="chips" style="margin-top:8px">${c.map(p=>`<button class="${pm[p.id]==='y'?'on':pm[p.id]==='n'?'no':''}" data-a="pl3" data-i="${d}|${p.id}">${esc(p.name)}${pm[p.id]==='y'?' ○':pm[p.id]==='n'?' ✕':''}</button>`).join('')}</div><div class="mut" style="margin-top:6px">이름을 누를 때마다 참여 ○ → 미참여 ✕ → 미정으로 바뀌어요</div>`:''}`}
+    <button style="min-height:32px;padding:2px 12px;margin-top:8px" data-a="popen" data-i="${d}">${popen===d?'플랩 체크 접기':'플랩 참여 체크'}</button>
+    ${popen===d?`<div class="chips" style="margin-top:8px">${c.map(p=>`<button class="${pm[p.id]==='y'?'on':pm[p.id]==='n'?'no':''}" data-a="pl3" data-i="${d}|${p.id}">${esc(p.name)}${pm[p.id]==='y'?' ○':pm[p.id]==='n'?' ✕':''}</button>`).join('')}</div><div class="mut" style="margin-top:6px">이름을 누를 때마다 참여 ○ → 미참여 ✕ → 미정으로 바뀌어요</div>`:''}`}
 function vSched(){const t=today(),M={},mems=S.players.filter(p=>p.m),s=se();
   // 선수를 시즌 팀(레드/블루/팀 없음)별로 묶어서 그린다
   const by=(arr,fn)=>[0,1,-1].map(k=>[k,arr.filter(p=>(s?teamOf(s,p.id):-1)===k)]).filter(x=>x[1].length).map(([k,L])=>fn(k,L)).join('');
@@ -543,10 +553,9 @@ function vSched(){const t=today(),M={},mems=S.players.filter(p=>p.m),s=se();
     return `<li style="${d<t?'opacity:.55':''}"><div class="dt ${lg}"><b>${+d.slice(8)}</b><span>${'일월화수목금토'[new Date(d+'T00:00:00').getDay()]}</span></div>
       <div style="flex:1;min-width:0"><b>${kind}</b><div class="mut">${how}</div><div class="meter"><i class="${lg}" style="width:${Math.min(n,10)*10}%"></i><u></u></div>${by(ids.map(pl).filter(Boolean),(k,L)=>`<div style="margin-top:8px;font-size:14px">${lab(k)} <b>${L.length}명</b> · ${L.map(p=>esc(p.name)).join(' · ')}</div>`)}
         ${plabUI(d,ids,kind,t,mems)}${d>=t&&s?`<button style="min-height:32px;padding:2px 12px;margin-top:8px" data-a="gor" data-i="${d}">${s.rounds.some(x=>x.date===d)?'오늘의 경기 열기':'오늘의 경기 준비'}</button>`:''}
-        ${OP?`<button style="min-height:32px;padding:2px 12px;margin-top:8px" data-a="vopen" data-i="${d}">${S.open===d?'참여자 접기':'참여자 선택'}</button>`:''}
         ${OP?`<button style="min-height:32px;padding:2px 12px;margin-top:8px" data-a="nopen" data-i="${d}">${S.nopen===d?'공지 접기':'공지 보기'}</button>`:''}
         ${OP?`<button class="pri" style="min-height:32px;padding:2px 12px;margin-top:8px" data-a="cpd" data-i="${d}">${cp===d?'복사됨 ✓':'공지 복사'}</button>`:''}
-        ${OP&&S.nopen===d?venueUI(d,ids):''}${OP&&S.open===d?by([...mems,...ids.map(pl).filter(p=>p&&!p.m)],(k,L)=>`<div style="margin-top:10px">${lab(k)}<div class="chips" style="margin-top:6px">${L.map(p=>`<button class="${ids.includes(p.id)?'on':''}" data-a="vt" data-i="${d}|${p.id}">${esc(p.name)}</button>`).join('')}</div></div>`):''}</div>
+        ${OP&&S.nopen===d?venueUI(d,ids):''}</div>
       <div style="margin-left:14px;font-size:24px;font-weight:600">${n}<span class="mut">명</span></div></li>`}).join('')}</ul></div>`).join('')
   +(m=>`<div class="card"><h2>참여 중인 멤버 ${m.length}명</h2><div class="chips">${m.map(p=>`<span class="chip" style="background:var(--neu-bg)">${esc(p.name)}</span>`).join('')}</div></div>`)(S.players.filter(p=>p.m))
   +`<div class="mut" style="margin-bottom:12px">일정은 운영자가 매달 투표 결과로 넣습니다. 5명 미만 개인 / 5~6명 플랩풋볼 / 7~9명 구장 대관 + 게스트 / 10명 이상 자체·외부 경기</div>`}
