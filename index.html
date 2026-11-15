@@ -340,11 +340,11 @@ select[data-sel="r"]{flex:1 1 100%}   /* 라운드 선택칸이 잘리던 것: �
 <div class="app"><aside>
 <div class="top"><div class="brand" data-a="tab" data-i="h"><b>AJ</b>UTD<small>FUTSAL CLUB</small></div><div id="auth" class="auth"></div></div>
 <div class="row"><select id="ss" data-sel="s"></select><button data-a="newse">새 시즌</button></div>
-<nav id="nav"></nav><div id="st" class="mut"></div></aside>
+<nav id="nav"></nav><div id="st" class="mut"></div><div id="ver" class="mut" style="font-size:11px;opacity:.55;margin-top:2px"></div></aside>
 <main id="v"></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" integrity="sha384-GFr3yTh5lJznCbZfpTtXnwboFsxqtTQoeTZCRHhE0579KrRmlCzen5AA8ohaB5ug" crossorigin="anonymous"></script>
 <script>
-const K='futsal-team-v2',DUE=20000;
+const K='futsal-team-v2',DUE=20000,VER='11/15 19:03';   // VER은 배포할 때 배포 시각으로 바뀐다 (캐시 때문에 옛 화면이 보이는지 확인용)
 const today=()=>new Date().toLocaleDateString('sv-SE');   // 한국 날짜. UTC로 재면 일요일 아침이 전날로 나온다
 // 일정 [날짜, 투표 인원]: 운영자 탭 > 일정에서 넣는다. 아래는 저장소에 일정이 아직 없을 때 쓰는 처음 값
 const SCHED0=[['2026-11-01',7],['2026-11-08',5],['2026-11-15',8],['2026-11-22',6],['2026-11-29',5]];
@@ -931,7 +931,7 @@ function render(){
   $('#v').innerHTML=head+{n:vNo,h:vHome,g:vGame,c:vSched,u:vLine,r:vRank,k:vRules,o:vOps,l:vLogin}[tab]();
   if(sx&&$('.sc'))$('.sc').scrollLeft=sx;
   fit();shotsUI();if(tab==='n')nochk();
-}
+  const ve=$('#ver');if(ve)ve.textContent=VER.startsWith('__')?'':'v'+VER}
 render();loadRemote();document.fonts.ready.then(fit);
 </script>
 </body>
