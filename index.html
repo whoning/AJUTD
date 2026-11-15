@@ -267,6 +267,23 @@ li:last-child{padding-bottom:2px}
 .nbd button.tk{opacity:.3;text-decoration:line-through}
 .nbd button.me{opacity:1;background:var(--lime);color:#0a1a00;text-decoration:none}
 @media(max-width:560px){.npv{min-width:88px;font-size:60px}}
+/* 점수판: 카드와 같은 얇은 프레임 + 어두운 안쪽 판. 레드·블루는 프레임과 팀 이름 색으로만 */
+.board{gap:10px}
+.bt.r,.bt.b{padding:3px;color:#fff}
+.bt.r{background:linear-gradient(135deg,#ff8a95,#8a1b2b 70%);clip-path:polygon(0 0,calc(100% - 24px) 0,100% 24px,100% 100%,0 100%)}
+.bt.b{background:linear-gradient(225deg,#8dbbff,#173f94 70%);text-align:right;clip-path:polygon(24px 0,100% 0,100% 100%,0 100%,0 24px)}
+.bi{position:relative;height:100%;padding:14px 20px;background:#0c1510}
+.bt.r .bi{clip-path:polygon(0 0,calc(100% - 21px) 0,100% 21px,100% 100%,0 100%)}
+.bt.b .bi{clip-path:polygon(21px 0,100% 0,100% 100%,0 100%,0 21px)}
+.bt small{font-style:normal;font-weight:800;font-size:15px;opacity:1}
+.bt.r small{color:#ff8a95}.bt.b small{color:#8dbbff}
+.bt .pts{font:800 italic 56px/1 "Barlow Condensed",sans-serif;color:#fff}
+.bt .pts span{font-size:18px;color:var(--muted)}
+.bt .rec{font-style:normal;font-weight:600;font-size:13px;color:var(--muted);opacity:1}
+.lead{position:absolute;top:12px;font:800 11px/1 "Barlow Condensed",sans-serif;font-style:normal;letter-spacing:.1em;color:var(--lime);border:1px solid rgba(212,255,58,.5);border-radius:99px;padding:3px 8px}
+.bt.r .lead{right:30px}.bt.b .lead{left:30px}
+@media(max-width:560px){.bt .pts{font-size:42px}.bi{padding:12px 12px}.bt.r .bi{padding-right:16px}.bt.b .bi{padding-left:16px}.bt .rec{font-size:11.5px;white-space:nowrap}}
+.npv.t2{background:#3b493e}.chip.tn{background:var(--neu-bg);color:var(--text)}
 </style>
 </head>
 <body>
@@ -451,7 +468,7 @@ const A={
     if(p.no&&p.no!==n&&!confirm(p.name+' 님의 번호를 '+p.no+'번에서 '+n+'번으로 바꿀까요?'))return;
     p.no=n;PNO={id:p.id,no:n};nmsg=p.name+' 님 '+n+'번 등록 완료'},
   clearno(){const p=pl(nsel);if(p&&OP&&confirm(p.name+' 님의 번호를 지울까요?')){delete p.no;ninp='';nmsg=p.name+' 님 번호를 지웠어요'}},
-  copyno(){copyText(S.players.filter(p=>p.m&&p.no).sort((a,b)=>a.no-b.no).map(p=>p.no+' '+p.name).join('\n'));nlink='n'},
+  copyno(){copyText(S.players.filter(p=>p.no).sort((a,b)=>a.no-b.no).map(p=>p.no+' '+p.name).join('\n'));nlink='n'},
   copylink(){copyText(location.href.split('#')[0]+'#no');nlink='l'},
   exp(){const a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));
@@ -533,7 +550,7 @@ const bar=(l,v,m)=>`<div>${l}<s><i style="width:${Math.min(100,v/m*100)}%"></i><
 const stars=o=>{const n=GRADES.length-GRADES.findIndex(g=>o>=g[0]);return `<div class="stars">${[1,2,3,4,5].map(k=>`<i class="${k<=n?'':'o'}"></i>`).join('')}</div>`};
 const nb=id=>{const n=pl(id)?.no;return `<div class="nb${n?'':' e'}">${n?esc(n):'--'}</div>`};
 const pcard=(s,p,i,big)=>`<div class="pc ${p.team?'b':'r'} g${grade(p.o)}"><div class="in"><div class="top"><div><div class="ovr">${p.o}</div><span class="tm">${esc(s.teams[p.team].n)}</span></div><div>${nb(p.id)}<span class="rk">#${i+1}</span></div></div><div class="mid"><div class="gr">${grade(p.o)}</div>${stars(p.o)}</div><div class="nm">${nm(p.id)}</div><div class="cs">${bar('골',p.g,MX.g)}${bar('어시',p.a,MX.a)}${bar('출석',p.t,MX.t)}</div></div></div>`;
-const boardHTML=(s,T)=>{const tb=i=>`<div class="bt ${i?'b':'r'}"><small>${esc(s.teams[i].n)}</small><div class="pts">${T[i].w*3+T[i].d}<span> PTS</span></div><div class="rec">${T[i].w}승 ${T[i].d}무 ${T[i].l}패 · ${T[i].w+T[i].d+T[i].l}경기</div></div>`;return `<div class="board">${tb(0)}<div class="vs">VS</div>${tb(1)}</div>`};
+const boardHTML=(s,T)=>{const P=i=>T[i].w*3+T[i].d,tb=i=>`<div class="bt ${i?'b':'r'}"><div class="bi">${P(i)>P(1-i)?'<em class="lead">LEAD</em>':''}<small>${esc(s.teams[i].n)}</small><div class="pts">${P(i)}<span> PTS</span></div><div class="rec">${T[i].w}승 ${T[i].d}무 ${T[i].l}패 · ${T[i].w+T[i].d+T[i].l}경기</div></div></div>`;return `<div class="board">${tb(0)}<div class="vs">VS</div>${tb(1)}</div>`};
 const rated=s=>{const {T,P,R}=calc(s);
   const ids=[...new Set([...s.teams.flatMap(t=>t.ids),...Object.keys(P)])].filter(id=>pl(id)&&!pl(id).guest&&!pl(id).name.includes('용병'));
   // 카드 왼쪽 위 숫자 = 100점 만점: 골 40(시즌 최다 대비) + 어시 30(시즌 최다 대비) + 출석 30(출석한 라운드 ÷ 전체)
@@ -705,10 +722,11 @@ function vLogin(){if(OP)return '<div class="card">운영자로 로그인되어 �
   return `<div class="card"><div class="row"><input id="le" type="email" autocomplete="username" placeholder="이메일"></div>
     <div class="row"><input id="lp" type="password" autocomplete="current-password" placeholder="비밀번호"></div>
     <button class="pri" data-a="dologin">로그인</button><div class="neg" style="margin-top:8px">${esc(loginErr)}</div></div>`}
-// ── 이미지 내보내기 (카톡 공유용): 오늘 경기 요약 + 전체 기록, 캔버스로 직접 그림 ──
+// ── 이미지 내보내기 (카톡 공유용): 오늘 경기 요약 + 전체 기록. 한 화면 분량으로 간략하게, 사이트와 같은 프레임 디자인 ──
 let shots=null;
 const KO='"Pretendard","Malgun Gothic","Apple SD Gothic Neo",sans-serif',NU='"Barlow Condensed","Pretendard",sans-serif',
-  TC=['#ff5a66','#5b9bff'],TD=['#c9202f','#1b46b8'],LIME='#d4ff3a',MUT='#a9bcab',CARD='#0f1f12';
+  TC=['#ff8a95','#8dbbff'],TD=['#c9202f','#1b46b8'],LIME='#d4ff3a',MUT='#a9bcab',PANEL='#0c1510',
+  TF=[['#ff8a95','#8a1b2b'],['#8dbbff','#173f94'],['#8f9f91','#3b493e']];   // 팀 프레임(레드·블루·무승부)
 // 등급 재질 (사이트 카드와 같은 색): f=프레임 그라데이션, c=글자색, ac=포인트, pn=안쪽 판, ink=이름 띠 글자
 const GP={UR:{f:['#ff7ac8','#ffe08a','#7affb8','#6ac6ff','#b48aff'],c:'#a86bff',ac:'#ffd6f5',pn:'#150d26',ink:'#1a0f2e'},
   SSR:{f:['#fff0b0','#e0aa2c','#8a5a0a'],c:'#e0aa2c',ac:'#ffd45a',pn:'#1c1405',ink:'#2a1a00'},
@@ -721,9 +739,11 @@ const lin=(x,x0,y0,x1,y1,st)=>{const g=x.createLinearGradient(x0,y0,x1,y1);st.fo
 const rr=(x,px,py,w,h,r)=>{x.beginPath();x.moveTo(px+r,py);x.arcTo(px+w,py,px+w,py+h,r);x.arcTo(px+w,py+h,px,py+h,r);x.arcTo(px,py+h,px,py,r);x.arcTo(px,py,px+w,py,r);x.closePath()};
 // 모서리를 사선으로 깎은 카드 모양 (사이트 카드와 같은 실루엣)
 const cut=(x,px,py,w,h)=>{x.beginPath();x.moveTo(px,py);x.lineTo(px+w*.88,py);x.lineTo(px+w,py+h*.05);x.lineTo(px+w,py+h);x.lineTo(px+w*.12,py+h);x.lineTo(px,py+h*.95);x.closePath()};
-// 한쪽이 기울어진 큰 점수판 (side 0 = 오른쪽 사선, 1 = 왼쪽 사선)
-const slab=(x,px,py,w,h,sk,side,fill)=>{x.beginPath();if(side){x.moveTo(px+sk,py);x.lineTo(px+w,py);x.lineTo(px+w,py+h);x.lineTo(px,py+h)}else{x.moveTo(px,py);x.lineTo(px+w,py);x.lineTo(px+w-sk,py+h);x.lineTo(px,py+h)}x.closePath();x.fillStyle=fill;x.fill()};
-function shot(draw){const W=1080,H0=4200,c=document.createElement('canvas');c.width=W;c.height=H0;const x=c.getContext('2d');
+// 한쪽 위 모서리만 깎은 틀 (side 0 = 오른쪽 위, 1 = 왼쪽 위)
+const cutS=(x,px,py,w,h,c,side)=>{x.beginPath();if(side){x.moveTo(px+c,py);x.lineTo(px+w,py);x.lineTo(px+w,py+h);x.lineTo(px,py+h);x.lineTo(px,py+c)}else{x.moveTo(px,py);x.lineTo(px+w-c,py);x.lineTo(px+w,py+c);x.lineTo(px+w,py+h);x.lineTo(px,py+h)}x.closePath()};
+// 프레임(그라데이션) + 어두운 안쪽 판
+function framed(x,px,py,w,h,c,side,stops,inner=PANEL,b=4){cutS(x,px,py,w,h,c,side);x.fillStyle=lin(x,px,py,px+w,py+h,stops);x.fill();cutS(x,px+b,py+b,w-2*b,h-2*b,Math.max(4,c-b),side);x.fillStyle=inner;x.fill()}
+function shot(draw){const W=1080,H0=3000,c=document.createElement('canvas');c.width=W;c.height=H0;const x=c.getContext('2d');
   x.fillStyle='#07140b';x.fillRect(0,0,W,H0);
   const g=x.createRadialGradient(180,0,0,180,0,950);g.addColorStop(0,'rgba(96,170,60,.55)');g.addColorStop(1,'rgba(96,170,60,0)');x.fillStyle=g;x.fillRect(0,0,W,1200);
   x.fillStyle='rgba(255,255,255,.022)';for(let i=0;i<W;i+=140)x.fillRect(i,0,70,H0);
@@ -731,104 +751,85 @@ function shot(draw){const W=1080,H0=4200,c=document.createElement('canvas');c.wi
 // 글자: num=true 이면 숫자용 얇고 긴 이탤릭, 아니면 한글 본문체
 const T=(x,s,px,py,sz,col,al='left',num=false,w=700)=>{x.font=num?`italic 800 ${sz}px ${NU}`:`${w} ${sz}px ${KO}`;x.fillStyle=col;x.textAlign=al;x.textBaseline='alphabetic';x.fillText(s,px,py)};
 const TW=(x,s,sz,num)=>{x.font=num?`italic 800 ${sz}px ${NU}`:`700 ${sz}px ${KO}`;return x.measureText(s).width};
-function head(x,W,big,sub,rightBig){T(x,'AJ',56,112,84,LIME,'left',true);T(x,'UTD',56+TW(x,'AJ ',84,true),112,84,'#fff','left',true);
-  T(x,big,W-56,100,rightBig?46:62,'#fff','right',!rightBig);T(x,sub,W-56,146,30,MUT,'right');return 200}
-// 큰 팀 점수판: v=큰 숫자, suf=숫자 옆 작은 글자, rec=아래 한 줄, lead=앞서는 팀(0/1, 없으면 -1)
-function hero(x,W,y,s,v,suf,rec,lead,leadTxt){const h=290,w=488;
-  [[56,0],[536,1]].forEach(([px,side],i)=>{slab(x,px,y,w,h,44,side,lin(x,px,y,px+w,y+h,i?['#2a6dff','#12409a']:['#d9344a','#7a1226']));
-    const cx=px+w/2+(side?22:-22);
-    T(x,s.teams[i].n,cx,y+66,40,'#fff','center');
-    const big=String(v[i]),bw=TW(x,big,190,true);T(x,big,cx-(suf?20:0),y+208,190,'#fff','center',true);if(suf)T(x,suf,cx-(suf?20:0)+bw/2+10,y+208,50,'rgba(255,255,255,.8)','left',true);
-    T(x,rec[i],cx,y+262,30,'rgba(255,255,255,.88)','center');
-    if(lead===i){const bx=side?px+w-150:px+34;rr(x,bx,y+24,116,44,22);x.fillStyle=LIME;x.fill();T(x,leadTxt,bx+58,y+56,30,'#0a1a00','center',true)}});
-  return y+h+34}
-const gtxt=m=>Object.entries(tally(m)).map(([id,v])=>nmOf(id)+' '+tx(v));   // 선수별 조각 목록
+function head(x,W,big,sub,rightBig){T(x,'AJ',56,104,78,LIME,'left',true);T(x,'UTD',56+TW(x,'AJ ',78,true),104,78,'#fff','left',true);
+  T(x,big,W-56,92,rightBig?44:58,'#fff','right',!rightBig);T(x,sub,W-56,134,28,MUT,'right');return 176}
+// 레드·블루 점수판 (사이트 순위 화면과 같은 프레임 모양). v=큰 숫자, suf=숫자 옆 글자, rec=아래 한 줄, lead=앞선 팀
+function hero(x,W,y,s,v,suf,rec,lead,leadTxt){const h=240,w=478;
+  [0,1].forEach(i=>{const px=i?546:56;framed(x,px,y,w,h,40,i,TF[i]);
+    const al=i?'right':'left',tx=i?px+w-36:px+36;
+    T(x,s.teams[i].n,tx,y+64,34,TC[i],al);
+    const big=String(v[i]);T(x,big,tx-(i&&suf?(TW(x,suf,48,true)+10):0),y+192,168,'#fff',al,true);
+    if(suf){const bw=TW(x,big,168,true);T(x,suf,i?tx:tx+bw+12,y+192,48,MUT,al,true)}
+    T(x,rec[i],tx,y+228,26,MUT,al);
+    if(lead===i){const bx=i?px+60:px+w-60-112;rr(x,bx,y+26,112,42,21);x.strokeStyle='rgba(212,255,58,.6)';x.lineWidth=2;x.stroke();T(x,leadTxt,bx+56,y+56,26,LIME,'center',true)}});
+  return y+h+30}
 const tally=m=>{const q={},z=id=>q[id]??={g:0,a:0,o:0};m.forEach(e=>{if(e.p)z(e.p).g++;if(e.a)z(e.a).a++;if(e.og)z(e.og).o++});return q};
-const tx=v=>[v.g&&v.g+'골',v.a&&v.a+'어시',v.o&&'자책'+v.o].filter(Boolean).join(' ');
-// 선수 단위로만 줄을 바꾼다 ("상은 1골"이 중간에서 끊기지 않게). 넘치면 마지막 줄 끝을 …로
-function wrap(x,parts,w,sz,max){x.font=`500 ${sz}px ${KO}`;const L=[];let line='';
-  parts.forEach(p=>{const t=line?line+' · '+p:p;if(line&&x.measureText(t).width>w){L.push(line);line=p}else line=t});if(line)L.push(line);
-  if(L.length>max){L.length=max;L[max-1]=L[max-1].replace(/.{1}$/,'…')}return L}
 function shotToday(){const s=se(),r=curRound(s),w=[0,0,0],P={};
   r.games.forEach(m=>{const [a,b]=score(m);a>b?w[0]++:a<b?w[1]++:w[2]++;
     Object.entries(tally(m)).forEach(([id,v])=>{const o=P[id]??={g:0,a:0,o:0};o.g+=v.g;o.a+=v.a;o.o+=v.o})});
-  const rank=Object.entries(P).filter(([,v])=>v.g||v.a).sort((a,b)=>(b[1].g*3+b[1].a*2)-(a[1].g*3+a[1].a*2)||b[1].g-a[1].g);
+  const ent=Object.entries(P),rank=ent.filter(([,v])=>v.g||v.a).sort((a,b)=>(b[1].g*3+b[1].a*2)-(a[1].g*3+a[1].a*2)||b[1].g-a[1].g),
+    top=(k)=>ent.filter(([,v])=>v[k]).sort((a,b)=>b[1][k]-a[1][k]).slice(0,3).map(([id,v])=>nmOf(id)+' '+v[k]).join('  ·  ');
   return shot((x,W)=>{
     const d=new Date(r.date+'T00:00:00');let y=head(x,W,(d.getMonth()+1)+'.'+String(d.getDate()).padStart(2,'0')+' '+'SUN MON TUE WED THU FRI SAT'.split(' ')[d.getDay()],isFree(r)?'오늘의 경기 · 자유경기':'오늘의 경기 결과');
     y=hero(x,W,y,s,[w[0],w[1]],'승',[w[0]+'승 '+w[2]+'무 '+w[1]+'패',w[1]+'승 '+w[2]+'무 '+w[0]+'패'],w[0]>w[1]?0:w[1]>w[0]?1:-1,'WIN');
-    T(x,'총 '+r.games.length+'경기'+(isFree(r)?' · 리그 승패에는 반영하지 않아요':''),540,y,30,MUT,'center');y+=44;
-    // MVP
-    if(rank.length){const [id,v]=rank[0],t=teamOf(s,id);
-      T(x,"TODAY'S MVP",56,y+34,36,LIME,'left',true);y+=56;
-      rr(x,56,y,968,214,30);x.fillStyle=CARD;x.fill();
-      x.save();rr(x,56,y,968,214,30);x.clip();x.fillStyle=TC[Math.max(0,t)];x.fillRect(56,y,12,214);x.restore();
-      const n=pl(id)?.no;let nx=100;
-      if(n){const pw=TW(x,'#'+n,40,true)+36;rr(x,nx,y+44,pw,56,12);x.fillStyle=TD[Math.max(0,t)];x.fill();T(x,'#'+n,nx+pw/2,y+86,40,'#fff','center',true);nx+=pw+16}
-      T(x,nmOf(id),nx,y+88,60,'#fff');
-      T(x,Math.max(0,t)?s.teams[1].n:s.teams[0].n,100,y+150,30,TC[Math.max(0,t)]);
-      [['골',v.g,LIME,770],['어시',v.a,'#fff',930]].forEach(([l,val,c,cx])=>{T(x,String(val),cx,y+122,120,c,'center',true);T(x,l,cx,y+176,30,MUT,'center')});
-      y+=214+50}
-    // 경기별 카드 (2열)
-    T(x,'MATCH RESULTS',56,y+34,36,LIME,'left',true);y+=60;
-    for(let i=0;i<r.games.length;i+=2){const row=[r.games[i],r.games[i+1]].map((m,k)=>m&&({m,i:i+k,L:wrap(x,gtxt(m).length?gtxt(m):['기록 없음'],420,26,3)})).filter(Boolean);
-      const hgt=204+Math.max(...row.map(c=>c.L.length))*36;
-      row.forEach((c,k)=>{const px=56+k*492,[a,b]=score(c.m),win=a>b?0:a<b?1:-1;
-        rr(x,px,y,476,hgt,28);x.fillStyle=CARD;x.fill();
-        T(x,(c.i+1)+'경기',px+28,y+52,30,MUT);
-        T(x,win<0?'무승부':s.teams[win].n+' 승',px+448,y+52,30,win<0?MUT:TC[win],'right');
-        x.globalAlpha=win===1?.5:1;T(x,String(a),px+238-36,y+158,104,win===1?TC[0]:'#fff','right',true);x.globalAlpha=1;
-        T(x,':',px+238,y+146,76,'rgba(255,255,255,.5)','center',true);
-        x.globalAlpha=win===0?.5:1;T(x,String(b),px+238+36,y+158,104,win===0?TC[1]:'#fff','left',true);x.globalAlpha=1;
-        c.L.forEach((ln,j)=>T(x,ln,px+28,y+208+j*36,26,MUT,'left',false,500))});
-      y+=hgt+16}
-    y+=24;
-    // 선수 기록 (많이 넣은 순, 값을 직접 적는다)
-    if(rank.length){T(x,'PLAYER STATS',56,y+34,36,LIME,'left',true);y+=62;const mx=Math.max(...rank.map(([,v])=>v.g+v.a),1);
-      rank.slice(0,8).forEach(([id,v])=>{const t=Math.max(0,teamOf(s,id));
-        x.beginPath();x.arc(76,y+34,10,0,7);x.fillStyle=TC[t];x.fill();
-        T(x,nmOf(id),104,y+46,36,'#fff');
-        rr(x,330,y+22,400,26,13);x.fillStyle='rgba(255,255,255,.08)';x.fill();
-        rr(x,330,y+22,Math.max(26,400*(v.g+v.a)/mx),26,13);x.fillStyle=TC[t];x.fill();
-        T(x,v.g+'골',850,y+46,34,LIME,'right');T(x,v.a+'어시',1024,y+46,34,'#fff','right');y+=76})}
-    y+=30;x.fillStyle='rgba(255,255,255,.1)';x.fillRect(56,y,968,2);
-    T(x,'AJ UTD · '+s.name,540,y+58,28,MUT,'center');return y+96})}
+    // 경기 결과: 점수만 작은 칸으로 (득점자는 적지 않는다)
+    T(x,'MATCH RESULTS · 총 '+r.games.length+'경기',56,y+30,34,LIME,'left',true);y+=54;
+    const n=r.games.length,cols=n>6?4:3,cw=(968-(cols-1)*12)/cols,ch=112;
+    r.games.forEach((m,i)=>{const [a,b]=score(m),win=a>b?0:a<b?1:2,px=56+(i%cols)*(cw+12),py=y+Math.floor(i/cols)*(ch+12);
+      framed(x,px,py,cw,ch,0,0,TF[win],PANEL,3);
+      T(x,(i+1)+'경기',px+18,py+36,24,MUT);
+      x.globalAlpha=win===1?.5:1;T(x,String(a),px+cw/2-26,py+96,70,win===1?TC[0]:'#fff','right',true);x.globalAlpha=1;
+      T(x,':',px+cw/2,py+90,50,'rgba(255,255,255,.45)','center',true);
+      x.globalAlpha=win===0?.5:1;T(x,String(b),px+cw/2+26,py+96,70,win===0?TC[1]:'#fff','left',true);x.globalAlpha=1});
+    y+=Math.ceil(n/cols)*(ch+12)+22;
+    // MVP + 득점·도움 TOP 3
+    if(rank.length){const [id,v]=rank[0],t=Math.max(0,teamOf(s,id)),pn=pl(id)?.no;
+      T(x,"TODAY'S MVP",56,y+30,34,LIME,'left',true);y+=52;
+      framed(x,56,y,968,176,34,0,TF[t]);
+      let nx=96;if(pn){const pw=TW(x,'#'+pn,38,true)+34;rr(x,nx,y+34,pw,52,10);x.fillStyle=TD[t];x.fill();T(x,'#'+pn,nx+pw/2,y+74,38,'#fff','center',true);nx+=pw+16}
+      T(x,nmOf(id),nx,y+78,58,'#fff');T(x,s.teams[t].n,96,y+138,28,TC[t]);
+      [['골',v.g,LIME,780],['어시',v.a,'#fff',930]].forEach(([l,val,c,cx])=>{T(x,String(val),cx,y+112,104,c,'center',true);T(x,l,cx,y+152,26,MUT,'center')});
+      y+=176+24;
+      [['득점',top('g')],['도움',top('a')]].filter(q=>q[1]).forEach(([l,txt])=>{T(x,l,70,y+34,28,LIME);T(x,txt,150,y+34,30,'#fff');y+=50})}
+    y+=24;x.fillStyle='rgba(255,255,255,.1)';x.fillRect(56,y,968,2);
+    T(x,'AJ UTD · '+s.name,540,y+52,26,MUT,'center');return y+84})}
 // 전체 기록 카드 한 장 (TOP 3용)
 function pcardImg(x,px,py,w,h,p,rk,s){const g=grade(p.o),G=GP[g],t=p.team;
   cut(x,px,py,w,h);x.fillStyle=lin(x,px,py,px+w,py+h,G.f);x.fill();
   cut(x,px+6,py+6,w-12,h-12);x.fillStyle=G.pn;x.fill();
-  T(x,String(p.o),px+28,py+112,104,G.ac,'left',true);T(x,s.teams[t].n,px+30,py+150,28,TC[t]);
-  const n=pl(p.id)?.no;if(n){const bw=TW(x,n,42,true)+34;slab(x,px+w-30-bw,py+28,bw,56,10,1,TD[t]);T(x,n,px+w-30-bw/2,py+70,42,'#fff','center',true)}
-  T(x,'#'+rk,px+w-34,py+120,40,'rgba(255,255,255,.7)','right',true);
-  let sz=140;while(TW(x,g,sz,true)>w*.58&&sz>60)sz-=6;   // 점수·번호·이름 띠와 겹치지 않게 크기·위치 제한
-  const gy=py+h*.54;x.save();x.font=`italic 800 ${sz}px ${NU}`;x.textAlign='center';x.textBaseline='alphabetic';
+  T(x,String(p.o),px+28,py+108,100,G.ac,'left',true);T(x,s.teams[t].n,px+30,py+144,26,TC[t]);
+  const n=pl(p.id)?.no;if(n){const bw=TW(x,n,40,true)+32;cutS(x,px+w-30-bw,py+26,bw,54,10,1);x.fillStyle=TD[t];x.fill();T(x,n,px+w-30-bw/2,py+66,40,'#fff','center',true)}
+  T(x,'#'+rk,px+w-34,py+114,38,'rgba(255,255,255,.7)','right',true);
+  let sz=112;while(TW(x,g,sz,true)>w*.54&&sz>60)sz-=6;
+  const gy=py+h*.52;x.save();x.font=`italic 800 ${sz}px ${NU}`;x.textAlign='center';x.textBaseline='alphabetic';
   if(g!=='N'){x.lineJoin='round';x.lineWidth=sz*.07;x.strokeStyle='#fff';x.strokeText(g,px+w/2,gy)}x.fillStyle=G.c;x.fillText(g,px+w/2,gy);x.restore();
-  const ny=py+h-196;x.beginPath();x.moveTo(px+22,ny);x.lineTo(px+w-14,ny);x.lineTo(px+w-30,ny+64);x.lineTo(px+14,ny+64);x.closePath();x.fillStyle=lin(x,px,ny,px+w,ny,G.f);x.fill();
-  T(x,nmOf(p.id),px+w/2,ny+46,40,G.ink,'center',false,800);
-  [[p.g,'골'],[p.a,'어시'],[p.t,'출석']].forEach(([v,l],i)=>{const cx=px+w*(.2+.3*i);T(x,String(v),cx,py+h-76,54,'#fff','center',true);T(x,l,cx,py+h-34,26,MUT,'center')})}
+  const ny=py+h-190;x.beginPath();x.moveTo(px+22,ny);x.lineTo(px+w-14,ny);x.lineTo(px+w-30,ny+62);x.lineTo(px+14,ny+62);x.closePath();x.fillStyle=lin(x,px,ny,px+w,ny,G.f);x.fill();
+  T(x,nmOf(p.id),px+w/2,ny+45,38,G.ink,'center',false,800);
+  [[p.g,'골'],[p.a,'어시'],[p.t,'출석']].forEach(([v,l],i)=>{const cx=px+w*(.2+.3*i);T(x,String(v),cx,py+h-72,52,'#fff','center',true);T(x,l,cx,py+h-32,24,MUT,'center')})}
 function shotAll(){const s=se(),{T:TT,R,rows}=rated(s),L=rows.filter(p=>p.g||p.a||p.t).sort((a,b)=>b.o-a.o),pts=i=>TT[i].w*3+TT[i].d,rec=i=>TT[i].w+'승 '+TT[i].d+'무 '+TT[i].l+'패 · '+(TT[i].w+TT[i].d+TT[i].l)+'경기';
   return shot((x,W)=>{
     let y=head(x,W,s.name,R+'라운드 · 오늘 경기 포함',true);
     y=hero(x,W,y,s,[pts(0),pts(1)],'PTS',[rec(0),rec(1)],pts(0)>pts(1)?0:pts(1)>pts(0)?1:-1,'LEAD');
     // TOP 3 (1위를 가운데 위로)
-    if(L.length){T(x,'TOP 3',56,y+34,36,LIME,'left',true);y+=62;const cw=310,top=y,pos=[[1,0],[0,1],[2,2]];
-      pos.forEach(([ix,col])=>{const p=L[ix];if(!p)return;const h=ix===0?500:456;pcardImg(x,56+col*329,top+(ix===0?0:44),cw,h,p,ix+1,s)});
-      y=top+500+44}
-    // 순위표 (4위부터, 값을 직접 적는다)
-    const rest=L.slice(3);
-    if(rest.length){T(x,'SQUAD',56,y+34,36,LIME,'left',true);y+=62;
-      [['골',690],['어시',790],['출석',890],['점수',1010]].forEach(([h,px])=>T(x,h,px,y,26,MUT,'right'));y+=18;
+    if(L.length){T(x,'TOP 3',56,y+30,34,LIME,'left',true);y+=54;const cw=310,top=y;
+      [[1,0],[0,1],[2,2]].forEach(([ix,col])=>{const p=L[ix];if(!p)return;pcardImg(x,56+col*329,top+(ix===0?0:36),cw,ix===0?452:416,p,ix+1,s)});
+      y=top+452+30}
+    // 4~8위만 (나머지는 사이트에서)
+    const rest=L.slice(3,8);
+    if(rest.length){T(x,'SQUAD',56,y+30,34,LIME,'left',true);y+=50;
+      [['골',690],['어시',790],['출석',890],['점수',1004]].forEach(([h,px])=>T(x,h,px,y,24,MUT,'right'));y+=14;
       rest.forEach((p,i)=>{const g=grade(p.o),G=GP[g];
-        rr(x,56,y,968,78,20);x.fillStyle=i%2?'rgba(255,255,255,.04)':'rgba(255,255,255,.08)';x.fill();
-        x.save();rr(x,56,y,968,78,20);x.clip();x.fillStyle=TC[p.team];x.fillRect(56,y,9,78);x.restore();
-        T(x,String(i+4),108,y+54,44,'#fff','center',true);
-        rr(x,150,y+17,96,44,12);x.fillStyle=lin(x,150,y,246,y,G.f);x.fill();T(x,g,198,y+51,34,G.ink,'center',true);
-        const n=pl(p.id)?.no;let nx=268;if(n){const pw=TW(x,'#'+n,30,true)+22;rr(x,nx,y+19,pw,40,10);x.fillStyle=TD[p.team];x.fill();T(x,'#'+n,nx+pw/2,y+50,30,'#fff','center',true);nx+=pw+12}
-        T(x,nmOf(p.id),nx,y+52,36,'#fff');
-        [[p.g,690],[p.a,790],[p.t,890]].forEach(([v,px])=>T(x,String(v),px,y+54,40,'#fff','right',true));T(x,String(p.o),1004,y+54,46,LIME,'right',true);
-        y+=90})}
-    y+=24;T(x,'점수 = 골 40 + 어시 30 + 출석 30 (100점 만점)',540,y+10,26,MUT,'center');
-    T(x,GRADES.slice(0,-1).map(([m,n])=>n+' '+m+'점↑').join('   '),540,y+50,26,MUT,'center');
-    x.fillStyle='rgba(255,255,255,.1)';x.fillRect(56,y+82,968,2);T(x,'AJ UTD · '+s.name,540,y+140,28,MUT,'center');return y+178})}
+        rr(x,56,y,968,70,18);x.fillStyle=i%2?'rgba(255,255,255,.04)':'rgba(255,255,255,.08)';x.fill();
+        x.save();rr(x,56,y,968,70,18);x.clip();x.fillStyle=TC[p.team];x.fillRect(56,y,8,70);x.restore();
+        T(x,String(i+4),104,y+49,40,'#fff','center',true);
+        rr(x,144,y+14,92,42,12);x.fillStyle=lin(x,144,y,236,y,G.f);x.fill();T(x,g,190,y+46,32,G.ink,'center',true);
+        const n=pl(p.id)?.no;let nx=258;if(n){const pw=TW(x,'#'+n,28,true)+22;rr(x,nx,y+16,pw,38,10);x.fillStyle=TD[p.team];x.fill();T(x,'#'+n,nx+pw/2,y+45,28,'#fff','center',true);nx+=pw+12}
+        T(x,nmOf(p.id),nx,y+48,34,'#fff');
+        [[p.g,690],[p.a,790],[p.t,890]].forEach(([v,px])=>T(x,String(v),px,y+50,38,'#fff','right',true));T(x,String(p.o),1004,y+50,44,LIME,'right',true);
+        y+=80});
+      if(L.length>8)T(x,'외 '+(L.length-8)+'명 · 전체 순위는 사이트에서',540,y+30,26,MUT,'center'),y+=44}
+    y+=24;T(x,'점수 = 골 40 + 어시 30 + 출석 30 · '+GRADES.slice(0,-1).map(([m,n])=>n+' '+m+'↑').join('  '),540,y+10,24,MUT,'center');
+    x.fillStyle='rgba(255,255,255,.1)';x.fillRect(56,y+40,968,2);T(x,'AJ UTD · '+s.name,540,y+92,26,MUT,'center');return y+124})}
 function shotsUI(){let o=document.getElementById('shots');
   if(!shots){o&&o.remove();return}
   if(!o){o=document.createElement('div');o.id='shots';o.style.cssText='position:fixed;inset:0;z-index:99;background:#000e;overflow:auto;padding:16px';document.body.appendChild(o)}
@@ -845,11 +846,11 @@ function nochk(){const v=($('#noin')?.value||'').trim(),p=pl(nsel),o=noOk(v)&&no
   if(pv)pv.textContent=noOk(v)?String(+v):'--';
   if(m){m.className=ok?'pos':same?'mut':'neg';m.textContent=!v?'번호를 입력해 주세요':!noOk(v)?'0~99 숫자만 넣을 수 있어요':o?o.name+' 님이 쓰는 번호예요':same?'지금 등록된 번호예요':'사용할 수 있어요'}
   if(b)b.disabled=!ok}
-function vNo(){const s=se(),mem=S.players.filter(p=>p.m),sel=mem.find(p=>p.id===nsel),tk=mem.filter(p=>p.no).sort((a,b)=>a.no-b.no),tm=id=>s?Math.max(0,teamOf(s,id)):0,used=new Set(mem.filter(p=>p.no).map(p=>+p.no)),mine=sel&&sel.no;
+function vNo(){const s=se(),mem=S.players.filter(p=>!p.name.includes('용병')).sort((a,b)=>(b.m?1:0)-(a.m?1:0)),sel=mem.find(p=>p.id===nsel),tk=mem.filter(p=>p.no).sort((a,b)=>a.no-b.no),tm=id=>s?teamOf(s,id):-1,tc=id=>Math.max(0,tm(id)),used=new Set(mem.filter(p=>p.no).map(p=>+p.no)),mine=sel&&sel.no;
   const who=n=>{const p=mem.find(x=>x.no===String(n));return p?p.name:''};
   return `<div class="card"><h2>1. 내 이름을 눌러주세요</h2><div class="chips">${mem.map(p=>`<button class="${sel&&sel.id===p.id?'on':''}" data-a="nsel" data-i="${p.id}">${nm(p.id)}${p.no?` <b>${esc(p.no)}</b>`:''}</button>`).join('')||'<span class="mut">아직 선수 명단이 없어요</span>'}</div></div>
   ${sel?`<div class="card nreg"><h2>2. ${nm(sel.id)} 님의 등번호 (0~99)</h2>
-    <div class="npvw"><div class="npv t${tm(sel.id)}" id="nopv">${noOk(ninp.trim())?+ninp:'--'}</div>
+    <div class="npvw"><div class="npv t${tm(sel.id)<0?2:tm(sel.id)}" id="nopv">${noOk(ninp.trim())?+ninp:'--'}</div>
     <div class="nright"><input id="noin" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" autocomplete="off" aria-label="등번호" placeholder="번호" value="${esc(ninp)}">
     <div id="nostat" class="mut" aria-live="polite"></div></div></div>
     <button class="pri save" id="nobtn" data-a="regno">${mine?'번호 바꾸기':'이 번호로 등록'}</button>
@@ -857,7 +858,7 @@ function vNo(){const s=se(),mem=S.players.filter(p=>p.m),sel=mem.find(p=>p.id===
     ${OP&&mine?'<button class="x" data-a="clearno" style="margin-top:6px">이 선수 번호 지우기 (운영자)</button>':''}</div>
   <div class="card"><h2>번호판 · 비어 있는 번호를 누르면 입력돼요</h2><div class="nbd">${Array.from({length:100},(_,n)=>`<button class="${used.has(n)?'tk':''} ${mine===String(n)?'me':''}" data-a="npick" data-i="${n}" ${used.has(n)&&mine!==String(n)?'disabled':''} aria-label="${n}번${used.has(n)?' '+esc(who(n))+' 사용 중':' 비어 있음'}">${n}</button>`).join('')}</div></div>`:'<div class="card mut">이름을 먼저 골라 주세요</div>'}
   <div class="card"><h2>등록된 번호 (${tk.length}/${mem.length}명)</h2>
-    ${tk.length?`<div class="chips">${tk.map(p=>`<span class="chip tt${tm(p.id)}"><b>${esc(p.no)}</b> ${nm(p.id)}</span>`).join('')}</div>`:'<div class="mut">아직 등록한 사람이 없어요</div>'}
+    ${tk.length?`<div class="chips">${tk.map(p=>`<span class="chip ${tm(p.id)<0?'tn':'tt'+tm(p.id)}"><b>${esc(p.no)}</b> ${nm(p.id)}</span>`).join('')}</div>`:'<div class="mut">아직 등록한 사람이 없어요</div>'}
     ${mem.some(p=>!p.no)?`<div class="mut" style="margin-top:12px">아직 안 정함 · ${mem.filter(p=>!p.no).map(p=>nm(p.id)).join(', ')}</div>`:''}
     <div class="row" style="margin-top:14px"><button data-a="copyno">${nlink==='n'?'복사했어요':'번호 목록 복사 (유니폼 주문용)'}</button><button data-a="copylink">${nlink==='l'?'복사했어요':'이 페이지 주소 복사'}</button></div></div>`}
 function render(){
