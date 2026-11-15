@@ -328,6 +328,12 @@ select[data-sel="r"]{flex:1 1 100%}   /* 라운드 선택칸이 잘리던 것: �
 .gt{font-size:13px;color:var(--muted);min-height:1.3em}
 .ga{display:flex;justify-content:flex-end;gap:6px;margin-top:6px}
 .ga button{min-height:36px;padding:2px 14px}
+/* UR은 최상위: 글자를 무지개 홀로그램 색으로 채우고 빛을 번지게 (SSR 금색보다 확실히 화려하게) */
+.gUR{--ac:#fff}
+.pc.gUR .gr,.lt.gUR .lg,.lh.gUR .lg{background:linear-gradient(110deg,#ff7ac8 0%,#ffe08a 28%,#7affb8 52%,#6ac6ff 76%,#b48aff 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.pc.gUR .gr{filter:drop-shadow(0 0 2.4cqw rgba(255,225,255,.75)) drop-shadow(0 1.6cqw 1.6cqw rgba(0,0,0,.45))}
+.lt.gUR .lg,.lh.gUR .lg{filter:drop-shadow(0 0 6px rgba(255,225,255,.7))}
+.pc.gUR .stars i{background:#fff;filter:drop-shadow(0 0 3px rgba(255,255,255,.9))}
 </style>
 </head>
 <body>
@@ -774,7 +780,7 @@ const KO='"Pretendard","Malgun Gothic","Apple SD Gothic Neo",sans-serif',NU='"Ba
   TC=['#ff8a95','#8dbbff'],TD=['#c9202f','#1b46b8'],LIME='#d4ff3a',MUT='#a9bcab',PANEL='#0c1510',
   TF=[['#ff8a95','#8a1b2b'],['#8dbbff','#173f94'],['#8f9f91','#3b493e']];   // 팀 프레임(레드·블루·무승부)
 // 등급 재질 (사이트 카드와 같은 색): f=프레임 그라데이션, c=글자색, ac=포인트, pn=안쪽 판, ink=이름 띠 글자
-const GP={UR:{f:['#ff7ac8','#ffe08a','#7affb8','#6ac6ff','#b48aff'],c:'#a86bff',ac:'#ffd6f5',pn:'#150d26',ink:'#1a0f2e'},
+const GP={UR:{f:['#ff7ac8','#ffe08a','#7affb8','#6ac6ff','#b48aff'],c:'#a86bff',ac:'#ffffff',pn:'#150d26',ink:'#1a0f2e'},
   SSR:{f:['#fff0b0','#e0aa2c','#8a5a0a'],c:'#e0aa2c',ac:'#ffd45a',pn:'#1c1405',ink:'#2a1a00'},
   SR:{f:['#f1e8ff','#a58bd6','#5d4a8f'],c:'#a58bd6',ac:'#cdb8ff',pn:'#150f26',ink:'#170e30'},
   R:{f:['#ffd9b8','#c98550','#7d4a20'],c:'#d08a4e',ac:'#f0a468',pn:'#1f130a',ink:'#2a1300'},
@@ -846,7 +852,8 @@ function pcardImg(x,px,py,w,h,p,rk,s){const g=grade(p.o),G=GP[g],t=p.team;
   T(x,'#'+rk,px+w-34,py+114,38,'rgba(255,255,255,.7)','right',true);
   let sz=112;while(TW(x,g,sz,true)>w*.54&&sz>60)sz-=6;
   const gy=py+h*.52;x.save();x.font=`italic 800 ${sz}px ${NU}`;x.textAlign='center';x.textBaseline='alphabetic';
-  if(g!=='N'){x.lineJoin='round';x.lineWidth=sz*.07;x.strokeStyle='#fff';x.strokeText(g,px+w/2,gy)}x.fillStyle=G.c;x.fillText(g,px+w/2,gy);x.restore();
+  const tw=x.measureText(g).width;if(g==='UR'){x.shadowColor='rgba(255,230,255,.9)';x.shadowBlur=28}   // UR은 빛 번짐 + 무지개 글자
+  if(g!=='N'){x.lineJoin='round';x.lineWidth=sz*.07;x.strokeStyle='#fff';x.strokeText(g,px+w/2,gy)}x.fillStyle=g==='UR'?lin(x,px+w/2-tw/2,0,px+w/2+tw/2,0,G.f):G.c;x.fillText(g,px+w/2,gy);x.restore();
   const ny=py+h-190;x.beginPath();x.moveTo(px+22,ny);x.lineTo(px+w-14,ny);x.lineTo(px+w-30,ny+62);x.lineTo(px+14,ny+62);x.closePath();x.fillStyle=lin(x,px,ny,px+w,ny,G.f);x.fill();
   T(x,nmOf(p.id),px+w/2,ny+45,38,G.ink,'center',false,800);
   [[p.g,'골'],[p.a,'어시'],[p.t,'출석']].forEach(([v,l],i)=>{const cx=px+w*(.2+.3*i);T(x,String(v),cx,py+h-72,52,'#fff','center',true);T(x,l,cx,py+h-32,24,MUT,'center')})}
