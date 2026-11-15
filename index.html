@@ -813,8 +813,7 @@ const tally=m=>{const q={},z=id=>q[id]??={g:0,a:0,o:0};m.forEach(e=>{if(e.p)z(e.
 function shotToday(){const s=se(),r=curRound(s),w=[0,0,0],P={};
   r.games.forEach(m=>{const [a,b]=score(m);a>b?w[0]++:a<b?w[1]++:w[2]++;
     Object.entries(tally(m)).forEach(([id,v])=>{const o=P[id]??={g:0,a:0,o:0};o.g+=v.g;o.a+=v.a;o.o+=v.o})});
-  const ent=Object.entries(P),rank=ent.filter(([,v])=>v.g||v.a).sort((a,b)=>(b[1].g*3+b[1].a*2)-(a[1].g*3+a[1].a*2)||b[1].g-a[1].g),
-    top=(k)=>ent.filter(([,v])=>v[k]).sort((a,b)=>b[1][k]-a[1][k]).slice(0,3).map(([id,v])=>nmOf(id)+' '+v[k]).join('  ·  ');
+  const ent=Object.entries(P),rank=ent.filter(([,v])=>v.g||v.a).sort((a,b)=>(b[1].g*3+b[1].a*2)-(a[1].g*3+a[1].a*2)||b[1].g-a[1].g);
   return shot((x,W)=>{
     const d=new Date(r.date+'T00:00:00');let y=head(x,W,(d.getMonth()+1)+'.'+String(d.getDate()).padStart(2,'0')+' '+'SUN MON TUE WED THU FRI SAT'.split(' ')[d.getDay()],isFree(r)?'오늘의 경기 · 자유경기':'오늘의 경기 결과');
     y=hero(x,W,y,s,[w[0],w[1]],'승',[w[0]+'승 '+w[2]+'무 '+w[1]+'패',w[1]+'승 '+w[2]+'무 '+w[0]+'패'],w[0]>w[1]?0:w[1]>w[0]?1:-1,'WIN');
@@ -828,15 +827,14 @@ function shotToday(){const s=se(),r=curRound(s),w=[0,0,0],P={};
       T(x,':',px+cw/2,py+90,50,'rgba(255,255,255,.45)','center',true);
       x.globalAlpha=win===0?.5:1;T(x,String(b),px+cw/2+26,py+96,70,win===0?TC[1]:'#fff','left',true);x.globalAlpha=1});
     y+=Math.ceil(n/cols)*(ch+12)+22;
-    // MOM(오늘의 선수) + 득점·도움 TOP 3
+    // MOM(오늘의 선수)
     if(rank.length){const [id,v]=rank[0],t=Math.max(0,teamOf(s,id)),pn=pl(id)?.no;
       T(x,'MOM · MAN OF THE MATCH',56,y+30,34,LIME,'left',true);y+=52;
       framed(x,56,y,968,176,34,0,TF[t]);
       let nx=96;if(pn){const pw=TW(x,'#'+pn,38,true)+34;rr(x,nx,y+34,pw,52,10);x.fillStyle=TD[t];x.fill();T(x,'#'+pn,nx+pw/2,y+74,38,'#fff','center',true);nx+=pw+16}
       T(x,nmOf(id),nx,y+78,58,'#fff');T(x,s.teams[t].n,96,y+138,28,TC[t]);
       [['골',v.g,LIME,780],['어시',v.a,'#fff',930]].forEach(([l,val,c,cx])=>{T(x,String(val),cx,y+112,104,c,'center',true);T(x,l,cx,y+152,26,MUT,'center')});
-      y+=176+24;
-      [['득점',top('g')],['도움',top('a')]].filter(q=>q[1]).forEach(([l,txt])=>{T(x,l,70,y+34,28,LIME);T(x,txt,150,y+34,30,'#fff');y+=50})}
+      y+=176}
     y+=24;x.fillStyle='rgba(255,255,255,.1)';x.fillRect(56,y,968,2);
     T(x,'AJ UTD · '+s.name,540,y+52,26,MUT,'center');return y+84})}
 // 전체 기록 카드 한 장 (TOP 3용)
