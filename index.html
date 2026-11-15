@@ -146,7 +146,7 @@ button.on{background:var(--lime);border-color:var(--lime);color:#0a1a00}
 .mm{display:inline-block;width:40px;height:40px;vertical-align:middle;margin-right:8px;background:#0b1236;border-radius:6px}
 .mm svg{width:100%;height:100%}
 /* ── 잔디 다크 테마 (어두운 잔디 바탕 + 검은 유리 카드 + 라임 포인트) ── */
-:root{color-scheme:dark;--ground:#07140b;--surface:rgba(6,14,8,.78);--border:rgba(255,255,255,.1);--rule:rgba(255,255,255,.09);--control:rgba(255,255,255,.18);--text:#eef5ea;--muted:#9fb3a3;--lime:#d4ff3a;--accent:#d4ff3a;--accent-soft:rgba(212,255,58,.16);--accent-ink:#d4ff3a;--pos:#6fe08d;--neg:#ff7480;--pos-bg:rgba(111,224,141,.2);--pos-ink:#8df0a8;--neg-bg:rgba(255,116,128,.2);--neg-ink:#ff9aa3;--neu-bg:rgba(255,255,255,.08);--active:rgba(255,255,255,.1);--t0:#ff6170;--t0-bg:rgba(255,77,94,.2);--t0-ink:#ff9aa3;--t1:#5c9dff;--t1-bg:rgba(61,139,255,.22);--t1-ink:#9cc3ff;--navy:#070b08;--navy2:#1b261d;--cy:#d4ff3a}
+:root{color-scheme:dark;--ground:#07140b;--surface:rgba(6,14,8,.78);--border:rgba(255,255,255,.1);--rule:rgba(255,255,255,.09);--control:rgba(255,255,255,.18);--text:#eef5ea;--muted:#9fb3a3;--lime:#d4ff3a;--accent:#d4ff3a;--accent-soft:rgba(212,255,58,.16);--accent-ink:#d4ff3a;--pos:#6fe08d;--neg:#ff7480;--pos-bg:rgba(111,224,141,.2);--pos-ink:#8df0a8;--neg-bg:rgba(255,116,128,.2);--neg-ink:#ff9aa3;--neu-bg:rgba(255,255,255,.08);--active:rgba(255,255,255,.1);--t0:#ff8a95;--t0-bg:rgba(255,77,94,.2);--t0-ink:#ff9aa3;--t1:#8dbbff;--t1-bg:rgba(61,139,255,.22);--t1-ink:#9cc3ff;--navy:#070b08;--navy2:#1b261d;--cy:#d4ff3a}
 body{background:#07140b}
 body::before{background:radial-gradient(90% 55% at 15% 0,rgba(96,170,60,.55),transparent 70%),repeating-linear-gradient(90deg,rgba(255,255,255,.03) 0 70px,transparent 70px 140px),linear-gradient(#17451c,#061008 75%)}
 .card{border:1px solid var(--border)}
@@ -284,6 +284,50 @@ li:last-child{padding-bottom:2px}
 .bt.r .lead{right:30px}.bt.b .lead{left:30px}
 @media(max-width:560px){.bt .pts{font-size:42px}.bi{padding:12px 12px}.bt.r .bi{padding-right:16px}.bt.b .bi{padding-left:16px}.bt .rec{font-size:11.5px;white-space:nowrap}}
 .npv.t2{background:#3b493e}.chip.tn{background:var(--neu-bg);color:var(--text)}
+/* ── 경기 화면: 카드·점수판과 같은 프레임 디자인 ── */
+.sbx{padding:3px;color:#fff}
+.sbx.r{background:linear-gradient(135deg,#ff8a95,#8a1b2b 70%);clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,0 100%)}
+.sbx.b{background:linear-gradient(225deg,#8dbbff,#173f94 70%);clip-path:polygon(16px 0,100% 0,100% 100%,0 100%,0 16px)}
+.sbi{background:#0c1510;padding:8px 10px;text-align:center;height:100%}
+.sbx.r .sbi{clip-path:polygon(0 0,calc(100% - 13px) 0,100% 13px,100% 100%,0 100%)}
+.sbx.b .sbi{clip-path:polygon(13px 0,100% 0,100% 100%,0 100%,0 13px)}
+.sbi small{display:block;font-size:14px;font-weight:800}
+.sbx.r small{color:#ff8a95}.sbx.b small{color:#8dbbff}
+.sbi b{display:block;font:800 italic 52px/1 "Barlow Condensed",sans-serif;color:#fff}
+.lv{grid-template-columns:1fr auto 1fr;gap:10px}
+.gm{text-align:center;align-self:center;min-width:56px}
+.gm small{display:block;font:800 italic 13px "Barlow Condensed",sans-serif;letter-spacing:.14em;color:var(--lime)}
+.gm b{display:block;font:800 italic 40px/1 "Barlow Condensed",sans-serif;color:#fff}
+.save{clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)}
+.th{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:6px;margin-bottom:10px;border-bottom:2px solid}
+.th b{font-size:17px;font-weight:800}.th span{font-size:13px;color:var(--muted)}
+.th.r{color:#ff8a95;border-color:#ff8a95}.th.b{color:#8dbbff;border-color:#8dbbff}
+.ptx{padding:2px;margin-bottom:10px;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)}
+.ptx.tc0{background:linear-gradient(135deg,#ff8a95,#8a1b2b 70%)}.ptx.tc1{background:linear-gradient(225deg,#8dbbff,#173f94 70%)}
+.pti{background:#0f1a12;padding:12px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%)}
+.pnm{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-weight:800;font-size:17px}
+.pnm .no{font:800 italic 15px/1 "Barlow Condensed",sans-serif;background:#c9202f;color:#fff;padding:3px 7px;border-radius:4px;margin:0}
+.ptx.tc1 .pnm .no{background:#1b46b8}
+.ptx .stp{background:rgba(255,255,255,.05);border-radius:14px;padding:3px}
+.ptx .stp button{background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:11px}
+.ptx .stp:first-child button:last-child{background:var(--lime);color:#0a1a00}
+.ptx .stp b{font:800 italic 30px/1 "Barlow Condensed",sans-serif;color:#fff}
+.ptx .stp small{color:var(--muted);font-size:13px}
+.ptx .ogr{color:var(--muted)}.ptx .ogr b{color:#fff}.ptx .ogr button{background:rgba(255,255,255,.1);border:0;color:#fff}
+select[data-sel="r"]{flex:1 1 100%}   /* 라운드 선택칸이 잘리던 것: 한 줄을 다 쓰고 버튼은 아래로 */
+.gl{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.gx{padding:2px;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)}
+.gx.w0{background:linear-gradient(135deg,#ff8a95,#8a1b2b)}.gx.w1{background:linear-gradient(225deg,#8dbbff,#173f94)}.gx.w2{background:linear-gradient(135deg,#8f9f91,#3b493e)}
+.gxi{background:#0f1a12;padding:12px 14px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%)}
+.gx.ed .gxi{box-shadow:inset 0 0 0 2px var(--lime)}
+.gh{display:flex;justify-content:space-between;font-weight:700;font-size:14px;color:var(--muted)}
+.gw.r{color:#ff8a95}.gw.b{color:#8dbbff}
+.gs{display:flex;justify-content:center;align-items:baseline;gap:14px;margin:4px 0 6px;font:800 italic 54px/1 "Barlow Condensed",sans-serif;color:#fff}
+.gs i{font-size:34px;color:rgba(255,255,255,.45);font-style:normal}
+.gs .lo{opacity:.55}.gs .lo.r{color:#ff8a95}.gs .lo.b{color:#8dbbff}
+.gt{font-size:13px;color:var(--muted);min-height:1.3em}
+.ga{display:flex;justify-content:flex-end;gap:6px;margin-top:6px}
+.ga button{min-height:36px;padding:2px 14px}
 </style>
 </head>
 <body>
@@ -510,24 +554,26 @@ function vGame(){const s=se();if(!s)return none;const r=curRound(s),fr=sched().m
   const ei=S.edit&&S.edit.rid===r.id?S.edit.i:null,att=r.att.map(pl).filter(Boolean),side=id=>gtOf(s,id);
   const sc=[0,0];att.forEach(p=>{const t=side(p.id);if(t>=0){sc[t]+=S.tally[p.id]?.g||0;sc[1-t]+=S.tally[p.id]?.o||0}});
   const stp=(id,k,label)=>`<div class="stp"><button data-a="inc" data-i="${id}|${k}|-1" aria-label="${label} 줄이기">−</button><span><b>${S.tally[id]?.[k]||0}</b><small>${label}</small></span><button data-a="inc" data-i="${id}|${k}|1" aria-label="${label} 늘리기">＋</button></div>`;
-  const tile=p=>`<div class="pt tc${side(p.id)}"><div class="pn"><span class="mm">${mono(p.id,side(p.id))}</span>${esc(p.name)}</div><div class="stps">${stp(p.id,'g','골')}${stp(p.id,'a','어시')}</div><div class="ogr">자책골<button data-a="inc" data-i="${p.id}|o|-1" aria-label="자책골 줄이기">−</button><b>${S.tally[p.id]?.o||0}</b><button data-a="inc" data-i="${p.id}|o|1" aria-label="자책골 늘리기">＋</button></div></div>`;
-  const col=t=>`<div><span class="chip tt${t}" style="margin-bottom:8px">${esc(s.teams[t].n)}</span>${att.filter(p=>side(p.id)===t).map(tile).join('')||'<div class="mut">출석한 선수가 없어요</div>'}</div>`;
+  const tile=p=>`<div class="ptx tc${side(p.id)}"><div class="pti"><div class="pnm">${numOf(p.id)}${esc(p.name)}</div><div class="stps">${stp(p.id,'g','골')}${stp(p.id,'a','어시')}</div><div class="ogr">자책골<button data-a="inc" data-i="${p.id}|o|-1" aria-label="자책골 줄이기">−</button><b>${S.tally[p.id]?.o||0}</b><button data-a="inc" data-i="${p.id}|o|1" aria-label="자책골 늘리기">＋</button></div></div></div>`;
+  const col=t=>{const L=att.filter(p=>side(p.id)===t);return `<div><div class="th ${t?'b':'r'}"><b>${esc(s.teams[t].n)}</b><span>${L.length}명</span></div>${L.map(tile).join('')||'<div class="mut">출석한 선수가 없어요</div>'}</div>`};
   const free=att.filter(p=>side(p.id)<0),guests=S.players.filter(p=>!ids.includes(p.id)||(!p.m&&!r.att.includes(p.id)));
   const gsum=m=>{const P={},z=id=>P[id]??={g:0,a:0,o:0};
     m.forEach(x=>{if(x.p)z(x.p).g++;if(x.a)z(x.a).a++;if(x.og)z(x.og).o++});
     return Object.entries(P).map(([id,v])=>nm(id)+' '+[v.g&&v.g+'골',v.a&&v.a+'어시',v.o&&'자책'+v.o].filter(Boolean).join(' ')).join(' · ')};
   return head+`<div class="card live"><div class="lv">
-      <div class="sb tt0"><small>${esc(s.teams[0].n)}</small><b>${sc[0]}</b></div>
-      <div class="clock"><small>GAME</small><b>${ei!=null?ei+1:r.games.length+1}</b></div>
-      <div class="sb tt1"><small>${esc(s.teams[1].n)}</small><b>${sc[1]}</b></div></div>
+      <div class="sbx r"><div class="sbi"><small>${esc(s.teams[0].n)}</small><b>${sc[0]}</b></div></div>
+      <div class="gm"><small>GAME</small><b>${ei!=null?ei+1:r.games.length+1}</b></div>
+      <div class="sbx b"><div class="sbi"><small>${esc(s.teams[1].n)}</small><b>${sc[1]}</b></div></div></div>
     <button class="pri save" data-a="endgame">${ei!=null?ei+1+'경기 수정 저장':r.games.length+1+'경기 저장'} · ${sc[0]} : ${sc[1]}</button>${ei!=null?'<button class="x" data-a="canceledit" style="margin-top:8px;width:100%">수정 취소</button>':''}</div>
   ${free.length?`<div class="card"><h2>팀을 정해주세요</h2>${free.map(p=>`<div class="row"><span style="flex:1">${av(p.id)}${esc(p.name)}</span><button class="chip tt0" data-a="side" data-i="${p.id}|0">${esc(s.teams[0].n)}</button><button class="chip tt1" data-a="side" data-i="${p.id}|1">${esc(s.teams[1].n)}</button></div>`).join('')}</div>`:''}
   <div class="two">${att.length?`<div class="card">${col(0)}</div><div class="card">${col(1)}</div>`:'<div class="card mut">아래에서 오늘 출석한 선수를 눌러주세요</div>'}</div>
-  <div class="card"><h2>출석 ${r.att.length}명 (참여 중인 선수 · 눌러서 체크)</h2>${(S.votes[r.date]||[]).some(id=>pl(id)&&!r.att.includes(id))?'<button data-a="attv" style="margin-bottom:10px">일정 참여자 불러오기</button>':''}<div class="chips">${ids.map(id=>`<button class="${r.att.includes(id)?'on':''}" data-a="att" data-i="${id}">${nm(id)}</button>`).join('')}</div>
+  <div class="card"><h2>출석 체크 · ${r.att.length}명</h2><div class="mut" style="margin:-6px 0 10px">참여한 선수를 눌러 표시해요</div>${(S.votes[r.date]||[]).some(id=>pl(id)&&!r.att.includes(id))?'<button data-a="attv" style="margin-bottom:10px">일정 참여자 불러오기</button>':''}<div class="chips">${ids.map(id=>`<button class="${r.att.includes(id)?'on':''}" data-a="att" data-i="${id}">${nm(id)}</button>`).join('')}</div>
     <div class="row" style="margin-top:12px"><input id="gn" placeholder="용병 이름 직접 입력"><button data-a="addn">추가</button></div>
     ${guests.length?`<div class="row"><select id="gs"><option value="">미참여·용병 추가</option>${guests.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select><button data-a="addg">추가</button></div>`:''}</div>
-  <div class="card"><h2>이 라운드 경기 (${r.games.length})${isFree(r)?' · 자유경기라 리그 승패에는 반영하지 않아요':''}</h2><ul>${r.games.map((m,i)=>{const [x,y]=score(m);
-    return `<li><span>${i+1}경기 <b class="t0">${x}</b> : <b class="t1">${y}</b> <span class="mut">${x>y?esc(s.teams[0].n)+' 승':x<y?esc(s.teams[1].n)+' 승':'무'}</span><br><span class="mut">${gsum(m)}</span></span><span><button data-a="editgame" data-i="${i}">수정</button> <button class="x" data-a="delgame" data-i="${i}">삭제</button></span></li>`}).join('')}</ul>${r.games.length?'<button class="pri" data-a="done" style="margin-top:12px;width:100%">오늘 경기 완료 · 이미지 내보내기</button>':''}</div>`}
+  <div class="card"><h2>이 라운드 경기 (${r.games.length})${isFree(r)?' · 자유경기라 리그 승패에는 반영하지 않아요':''}</h2><div class="gl">${r.games.map((m,i)=>{const [x,y]=score(m),w=x>y?0:x<y?1:2;
+    return `<div class="gx w${w} ${ei===i?'ed':''}"><div class="gxi"><div class="gh"><b>${i+1}경기</b><span class="gw ${w===0?'r':w===1?'b':''}">${w===2?'무승부':esc(s.teams[w].n)+' 승'}</span></div>
+      <div class="gs"><span class="${w===1?'lo r':''}">${x}</span><i>:</i><span class="${w===0?'lo b':''}">${y}</span></div>
+      <div class="gt">${gsum(m)||'기록 없음'}</div><div class="ga"><button data-a="editgame" data-i="${i}">수정</button><button class="x" data-a="delgame" data-i="${i}">삭제</button></div></div></div>`}).join('')}</div>${r.games.length?'<button class="pri" data-a="done" style="margin-top:12px;width:100%">오늘 경기 완료 · 이미지 내보내기</button>':''}</div>`}
 
 // ── 영어 이니셜: 한글 이름의 첫 글자를 자동 변환 (선수·백업에서 직접 고칠 수 있음) ──
 function ini(c){const k=c.charCodeAt(0)-0xAC00;if(k<0||k>11171)return c.toUpperCase();
@@ -782,9 +828,9 @@ function shotToday(){const s=se(),r=curRound(s),w=[0,0,0],P={};
       T(x,':',px+cw/2,py+90,50,'rgba(255,255,255,.45)','center',true);
       x.globalAlpha=win===0?.5:1;T(x,String(b),px+cw/2+26,py+96,70,win===0?TC[1]:'#fff','left',true);x.globalAlpha=1});
     y+=Math.ceil(n/cols)*(ch+12)+22;
-    // MVP + 득점·도움 TOP 3
+    // MOM(오늘의 선수) + 득점·도움 TOP 3
     if(rank.length){const [id,v]=rank[0],t=Math.max(0,teamOf(s,id)),pn=pl(id)?.no;
-      T(x,"TODAY'S MVP",56,y+30,34,LIME,'left',true);y+=52;
+      T(x,'MOM · MAN OF THE MATCH',56,y+30,34,LIME,'left',true);y+=52;
       framed(x,56,y,968,176,34,0,TF[t]);
       let nx=96;if(pn){const pw=TW(x,'#'+pn,38,true)+34;rr(x,nx,y+34,pw,52,10);x.fillStyle=TD[t];x.fill();T(x,'#'+pn,nx+pw/2,y+74,38,'#fff','center',true);nx+=pw+16}
       T(x,nmOf(id),nx,y+78,58,'#fff');T(x,s.teams[t].n,96,y+138,28,TC[t]);
@@ -872,7 +918,7 @@ function render(){
   const T={n:'등번호 등록',h:'대시보드',g:'오늘의 경기',c:'일정',u:'라인업',r:'순위',k:'운영규칙',o:'운영자',l:'운영자 로그인'};
   const nx=sched().filter(([d])=>d>=today()).sort()[0],late=S.players.filter(p=>p.m&&unpaidOf(p.id).length).length;
   const cr=se()&&curRound(se());
-  const sub={h:se()?.name||'',g:cr?`${cr.date.slice(5).replace('-','/')} · 출석 ${cr.att.length}명 · ${isFree(cr)?'자유경기 (골·어시만 기록, 리그 승패 미반영)':'리그'}`:'',c:nx?`다음 경기 ${nx[0].slice(5).replace('-','/')} · 투표 ${nx[1]}명 · ${guide(nx[1])[1]}`:'',
+  const sub={h:se()?.name||'',g:cr?`${cr.date.slice(5).replace('-','/')} · 출석 ${cr.att.length}명 · ${isFree(cr)?'자유경기 · 리그 승패 미반영':'리그'}`:'',c:nx?`다음 경기 ${nx[0].slice(5).replace('-','/')} · 투표 ${nx[1]}명 · ${guide(nx[1])[1]}`:'',
     n:'유니폼 주문용 · 한 번호는 한 명만',o:opsTab==='d'?(late?`회비 미입금 ${late}명 · 월 ${DUE.toLocaleString()}원`:'회비 미입금 없음'):''}[tab]||'';
   const sx=$('.sc')?.scrollLeft;
   const sn=(se()?.name||'AJ UTD').match(/^(\d{4})\s*(.*)$/);   // 홈 제목: 시즌 이름을 크게 (연도는 라임색 숫자)
