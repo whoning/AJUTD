@@ -863,7 +863,7 @@ function vNo(){const s=se(),mem=S.players.filter(p=>p.m),sel=mem.find(p=>p.id===
 function render(){
   if(sb&&tab==='o'&&!OP)tab='h';
   $('#ss').innerHTML=S.seasons.map(s=>`<option value="${s.id}" ${s.id===S.sid?'selected':''}>${esc(s.name)}</option>`).join('')||'<option>시즌 없음</option>';
-  $('#nav').innerHTML=[['h','홈'],['g','경기'],['c','일정'],['u','라인업'],['r','순위'],['k','규칙'],...(OP?[['o','운영자']]:[])].map(([k,t])=>`<button class="${tab===k?'on':''}" data-a="tab" data-i="${k}">${t}</button>`).join('');
+  $('#nav').innerHTML=[['h','홈'],['g','경기'],['c','일정'],['u','라인업'],['r','순위'],['n','등번호'],['k','규칙'],...(OP?[['o','운영자']]:[])].map(([k,t])=>`<button class="${tab===k?'on':''}" data-a="tab" data-i="${k}">${t}</button>`).join('');
   const na=document.querySelector('[data-a=newse]');if(na)na.hidden=!OP;
   const lock=d=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="${d}"/></svg>`;
   $('#auth').innerHTML=sb?(OP?`<button class="on" data-a="dologout" aria-label="로그아웃" title="로그아웃 (운영자로 로그인됨)">${lock('M8 11V7a4 4 0 0 1 7.6-1.7')}</button>`:`<button data-a="tab" data-i="l" aria-label="운영자 로그인" title="운영자 로그인">${lock('M8 11V7a4 4 0 0 1 8 0v4')}</button>`):'';
